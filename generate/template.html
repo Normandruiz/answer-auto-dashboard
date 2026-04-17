@@ -10,11 +10,21 @@
 body { background: linear-gradient(180deg, #ffffff 0%, #f0f3f8 100%); background-attachment: fixed; color: #2B2B2B; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.5; padding: 24px; min-height: 100vh; }
 .container { max-width: 1440px; margin: 0 auto; }
 
-header.hero { background: #ffffff; padding: 32px; border-radius: 16px; border: 1px solid #e5e9f0; margin-bottom: 24px; box-shadow: 0 2px 8px rgba(0,51,160,.06); border-top: 4px solid; border-image: linear-gradient(90deg, #0033A0, #FA6400) 1; }
-header.hero h1 { font-size: 32px; background: linear-gradient(90deg, #0033A0, #FA6400); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 8px; font-weight: 800; }
-header.hero .sub { color: #6A6A6A; font-size: 14px; }
-header.hero .meta { display: flex; gap: 24px; margin-top: 16px; flex-wrap: wrap; font-size: 13px; color: #808285; }
+header.hero { background: #ffffff; padding: 24px 32px; border-radius: 16px; border: 1px solid #e5e9f0; margin-bottom: 24px; box-shadow: 0 2px 8px rgba(0,51,160,.06); border-top: 4px solid; border-image: linear-gradient(90deg, #0033A0, #FA6400) 1; }
+header.hero .brand-row { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-bottom: 16px; }
+header.hero .brand-row .logo { width: auto; object-fit: contain; }
+header.hero .brand-row .logo.left { height: 90px; max-width: 260px; }
+header.hero .brand-row .logo.right { height: 56px; max-width: 220px; }
+header.hero .title-block { flex: 1; text-align: center; }
+header.hero h1 { font-size: 28px; background: linear-gradient(90deg, #0033A0, #FA6400); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 6px; font-weight: 800; }
+header.hero .sub { color: #6A6A6A; font-size: 13px; }
+header.hero .meta { display: flex; gap: 24px; justify-content: center; flex-wrap: wrap; font-size: 13px; color: #808285; padding-top: 14px; border-top: 1px solid #f0f3f8; }
 header.hero .meta strong { color: #2B2B2B; font-weight: 600; }
+@media (max-width: 720px) {
+  header.hero .brand-row { flex-direction: column; gap: 12px; }
+  header.hero .brand-row .logo, header.hero .brand-row .logo.right { height: 40px; }
+  header.hero h1 { font-size: 22px; }
+}
 
 .filters { background: #ffffff; border: 1px solid #e5e9f0; border-radius: 12px; padding: 20px; margin-bottom: 24px; display: flex; gap: 16px; align-items: center; flex-wrap: wrap; box-shadow: 0 1px 3px rgba(0,51,160,.04); }
 .filters label { font-size: 12px; color: #6A6A6A; display: flex; flex-direction: column; gap: 6px; font-weight: 600; }
@@ -104,8 +114,14 @@ footer { text-align: center; padding: 24px; color: #808285; font-size: 12px; }
 <body>
 <div class="container">
   <header class="hero">
-    <h1>Answer Seguros — Performance Auto</h1>
-    <div class="sub">Reporte diario automatizado · Google Ads + Meta Ads + Sheet interno</div>
+    <div class="brand-row">
+      <img src="assets/logo-answer.png" alt="Answer Galicia Seguros" class="logo left" onerror="this.style.visibility='hidden'">
+      <div class="title-block">
+        <h1>Dashboard Performance — Auto</h1>
+        <div class="sub">Reporte diario automatizado · Google Ads + Meta Ads + Sheet interno</div>
+      </div>
+      <img src="assets/logo-beyond.png" alt="Beyond" class="logo right" onerror="this.style.visibility='hidden'">
+    </div>
     <div class="meta">
       <span>Generado: <strong id="generated-at"></strong></span>
       <span>Período: <strong id="date-range-label"></strong></span>
