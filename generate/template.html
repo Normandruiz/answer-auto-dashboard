@@ -7,77 +7,96 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-body { background: #0a0e1a; color: #e0e6f0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.5; padding: 24px; }
+body { background: linear-gradient(180deg, #ffffff 0%, #f0f3f8 100%); background-attachment: fixed; color: #2B2B2B; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.5; padding: 24px; min-height: 100vh; }
 .container { max-width: 1440px; margin: 0 auto; }
-header.hero { background: linear-gradient(135deg, #1a1f3a 0%, #0d1025 100%); padding: 32px; border-radius: 16px; border: 1px solid #1f2937; margin-bottom: 24px; }
-header.hero h1 { font-size: 32px; background: linear-gradient(90deg, #60a5fa, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 8px; }
-header.hero .sub { color: #94a3b8; font-size: 14px; }
-header.hero .meta { display: flex; gap: 24px; margin-top: 16px; flex-wrap: wrap; font-size: 13px; color: #6b7280; }
-header.hero .meta strong { color: #e0e6f0; font-weight: 500; }
 
-.filters { background: #111827; border: 1px solid #1f2937; border-radius: 12px; padding: 20px; margin-bottom: 24px; display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
-.filters label { font-size: 12px; color: #94a3b8; display: flex; flex-direction: column; gap: 6px; }
-.filters input[type=date] { background: #0a0e1a; border: 1px solid #1f2937; color: #e0e6f0; padding: 8px 12px; border-radius: 8px; font-size: 14px; color-scheme: dark; }
-.filters button { background: #1f2937; border: 1px solid #374151; color: #e0e6f0; padding: 8px 14px; border-radius: 8px; cursor: pointer; font-size: 13px; transition: all .15s; }
-.filters button:hover { background: #374151; }
-.filters button.primary { background: linear-gradient(90deg, #60a5fa, #a78bfa); border: none; color: #0a0e1a; font-weight: 600; }
+header.hero { background: #ffffff; padding: 32px; border-radius: 16px; border: 1px solid #e5e9f0; margin-bottom: 24px; box-shadow: 0 2px 8px rgba(0,51,160,.06); border-top: 4px solid; border-image: linear-gradient(90deg, #0033A0, #FA6400) 1; }
+header.hero h1 { font-size: 32px; background: linear-gradient(90deg, #0033A0, #FA6400); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 8px; font-weight: 800; }
+header.hero .sub { color: #6A6A6A; font-size: 14px; }
+header.hero .meta { display: flex; gap: 24px; margin-top: 16px; flex-wrap: wrap; font-size: 13px; color: #808285; }
+header.hero .meta strong { color: #2B2B2B; font-weight: 600; }
+
+.filters { background: #ffffff; border: 1px solid #e5e9f0; border-radius: 12px; padding: 20px; margin-bottom: 24px; display: flex; gap: 16px; align-items: center; flex-wrap: wrap; box-shadow: 0 1px 3px rgba(0,51,160,.04); }
+.filters label { font-size: 12px; color: #6A6A6A; display: flex; flex-direction: column; gap: 6px; font-weight: 600; }
+.filters input[type=date] { background: #f0f3f8; border: 1px solid #e5e9f0; color: #2B2B2B; padding: 8px 12px; border-radius: 8px; font-size: 14px; }
+.filters button { background: #f0f3f8; border: 1px solid #e5e9f0; color: #2B2B2B; padding: 8px 14px; border-radius: 8px; cursor: pointer; font-size: 13px; transition: all .15s; font-weight: 500; }
+.filters button:hover { background: #e5e9f0; border-color: #4D7CC7; color: #0033A0; }
+.filters button.primary { background: linear-gradient(90deg, #0033A0, #FA6400); border: none; color: #ffffff; font-weight: 700; }
+.filters button.primary:hover { filter: brightness(1.08); color: #ffffff; }
 .filters .presets { display: flex; gap: 8px; flex-wrap: wrap; margin-left: auto; }
 
 .kpi-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 16px; margin-bottom: 32px; }
-.kpi-card { background: #111827; border: 1px solid #1f2937; border-radius: 12px; padding: 20px; }
-.kpi-card .label { font-size: 11px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
-.kpi-card .value { font-size: 24px; font-weight: 700; }
-.kpi-card.google .value { color: #4ade80; }
-.kpi-card.meta .value { color: #60a5fa; }
-.kpi-card.total .value { color: #fbbf24; }
-.kpi-card.sheet .value { color: #a78bfa; }
-.kpi-card .sub { font-size: 11px; color: #6b7280; margin-top: 4px; }
+.kpi-card { background: #ffffff; border: 1px solid #e5e9f0; border-radius: 12px; padding: 20px; border-left: 4px solid #0033A0; box-shadow: 0 1px 3px rgba(0,51,160,.04); }
+.kpi-card .label { font-size: 11px; color: #808285; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; font-weight: 600; }
+.kpi-card .value { font-size: 24px; font-weight: 700; color: #2B2B2B; }
+.kpi-card.google { border-left-color: #0033A0; }
+.kpi-card.google .value { color: #0033A0; }
+.kpi-card.meta { border-left-color: #FA6400; }
+.kpi-card.meta .value { color: #FA6400; }
+.kpi-card.total { border-left-color: #FA6400; }
+.kpi-card.total .value { color: #FA6400; }
+.kpi-card.sheet { border-left-color: #4D7CC7; }
+.kpi-card.sheet .value { color: #0033A0; }
+.kpi-card .sub { font-size: 11px; color: #808285; margin-top: 4px; }
 
-.section { background: #111827; border: 1px solid #1f2937; border-radius: 12px; padding: 24px; margin-bottom: 24px; }
-.section h2 { font-size: 18px; margin-bottom: 16px; color: #e0e6f0; }
-.section h3 { font-size: 14px; margin-bottom: 12px; color: #94a3b8; }
+.section { background: #ffffff; border: 1px solid #e5e9f0; border-radius: 12px; padding: 24px; margin-bottom: 24px; box-shadow: 0 1px 3px rgba(0,51,160,.04); }
+.section h2 { font-size: 18px; margin-bottom: 16px; color: #2B2B2B; font-weight: 700; }
+.section h3 { font-size: 14px; margin-bottom: 12px; color: #6A6A6A; font-weight: 600; }
 
 table { width: 100%; border-collapse: collapse; font-size: 13px; }
-th { background: #0a0e1a; color: #94a3b8; font-weight: 500; padding: 10px 12px; text-align: left; border-bottom: 1px solid #1f2937; font-size: 11px; text-transform: uppercase; letter-spacing: 0.3px; }
+th { background: #f0f3f8; color: #6A6A6A; font-weight: 700; padding: 10px 12px; text-align: left; border-bottom: 1px solid #e5e9f0; font-size: 11px; text-transform: uppercase; letter-spacing: 0.3px; }
 th.num, td.num { text-align: right; font-variant-numeric: tabular-nums; }
-td { padding: 10px 12px; border-bottom: 1px solid #1f2937; color: #e0e6f0; }
-tr:hover td { background: #0a0e1a; }
-td.google { color: #4ade80; }
-td.meta { color: #60a5fa; }
-td.sheet { color: #a78bfa; }
-td.warning { color: #f87171; }
+td { padding: 10px 12px; border-bottom: 1px solid #f0f3f8; color: #2B2B2B; }
+tr:hover td { background: #fafbfd; }
+td.google { color: #0033A0; font-weight: 600; }
+td.meta { color: #FA6400; font-weight: 600; }
+td.sheet { color: #4D7CC7; font-weight: 600; }
+td.warning { color: #ef4444; font-weight: 700; }
+td.good { color: #10b981; font-weight: 700; }
 
 .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px; }
-.chart-box { background: #111827; border: 1px solid #1f2937; border-radius: 12px; padding: 24px; }
-.chart-box h3 { margin-bottom: 16px; }
+.charts-grid.three { grid-template-columns: repeat(3, 1fr); }
+.chart-box { background: #ffffff; border: 1px solid #e5e9f0; border-radius: 12px; padding: 24px; box-shadow: 0 1px 3px rgba(0,51,160,.04); }
+.chart-box h3 { margin-bottom: 16px; color: #2B2B2B; }
 .chart-box canvas { max-height: 300px; }
 
-.recommendations { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
-.insight-card { background: #0a0e1a; border: 1px solid #1f2937; border-radius: 10px; padding: 16px; border-left: 4px solid #6b7280; }
-.insight-card.scale { border-left-color: #4ade80; }
-.insight-card.optimize { border-left-color: #fbbf24; }
-.insight-card.pause { border-left-color: #f87171; }
-.insight-card.info { border-left-color: #60a5fa; }
-.insight-card .tag { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
-.insight-card.scale .tag { color: #4ade80; }
-.insight-card.optimize .tag { color: #fbbf24; }
-.insight-card.pause .tag { color: #f87171; }
-.insight-card.info .tag { color: #60a5fa; }
-.insight-card .title { font-size: 14px; font-weight: 600; margin-bottom: 6px; }
-.insight-card .body { font-size: 12px; color: #94a3b8; }
+.mom-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+.mom-card { background: #f0f3f8; border-radius: 10px; padding: 14px 16px; border: 1px solid #e5e9f0; }
+.mom-card .label { font-size: 10px; color: #808285; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 4px; font-weight: 600; }
+.mom-card .value { font-size: 20px; font-weight: 700; color: #2B2B2B; }
+.mom-card .delta { font-size: 12px; font-weight: 600; margin-top: 4px; }
+.mom-card .delta.up { color: #10b981; }
+.mom-card .delta.down { color: #ef4444; }
+.mom-card .delta.flat { color: #808285; }
 
-footer { text-align: center; padding: 24px; color: #6b7280; font-size: 12px; }
+.recommendations { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+.insight-card { background: #fafbfd; border: 1px solid #e5e9f0; border-radius: 10px; padding: 16px; border-left: 4px solid #808285; }
+.insight-card.scale { border-left-color: #0033A0; background: linear-gradient(90deg, rgba(0,51,160,.04), #fafbfd); }
+.insight-card.optimize { border-left-color: #FA6400; background: linear-gradient(90deg, rgba(250,100,0,.06), #fafbfd); }
+.insight-card.pause { border-left-color: #A84308; background: linear-gradient(90deg, rgba(168,67,8,.06), #fafbfd); }
+.insight-card.info { border-left-color: #4D7CC7; background: linear-gradient(90deg, rgba(77,124,199,.05), #fafbfd); }
+.insight-card .tag { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+.insight-card.scale .tag { color: #0033A0; }
+.insight-card.optimize .tag { color: #FA6400; }
+.insight-card.pause .tag { color: #A84308; }
+.insight-card.info .tag { color: #4D7CC7; }
+.insight-card .title { font-size: 14px; font-weight: 700; color: #2B2B2B; margin-bottom: 6px; }
+.insight-card .body { font-size: 12px; color: #6A6A6A; }
+
+footer { text-align: center; padding: 24px; color: #808285; font-size: 12px; }
 
 @media (max-width: 1100px) {
   .kpi-grid { grid-template-columns: repeat(3, 1fr); }
-  .charts-grid { grid-template-columns: 1fr; }
+  .charts-grid, .charts-grid.three { grid-template-columns: 1fr; }
+  .mom-strip { grid-template-columns: repeat(2, 1fr); }
 }
 @media (max-width: 640px) {
   .kpi-grid { grid-template-columns: 1fr 1fr; }
+  .mom-strip { grid-template-columns: 1fr; }
 }
 @media print {
-  body { background: #0a0e1a !important; }
-  .section, .kpi-card, .chart-box, .insight-card, th, header.hero, .filters { background-color: inherit !important; }
+  body { background: #ffffff !important; }
+  .section, .kpi-card, .chart-box, .insight-card, th, header.hero, .filters, .mom-card { background-color: inherit !important; }
   .filters { display: none; }
 }
 </style>
@@ -108,6 +127,16 @@ footer { text-align: center; padding: 24px; color: #6b7280; font-size: 12px; }
   </div>
 
   <div class="kpi-grid" id="kpi-grid"></div>
+
+  <div class="section">
+    <h2>Evolución mensual</h2>
+    <div class="mom-strip" id="mom-strip"></div>
+    <div class="charts-grid three">
+      <div class="chart-box"><h3>Cotas por mes</h3><canvas id="chart-cotas-month"></canvas></div>
+      <div class="chart-box"><h3>Solas Ecommerce por mes</h3><canvas id="chart-solas-month"></canvas></div>
+      <div class="chart-box"><h3>Gasto por mes (Google + Meta)</h3><canvas id="chart-spend-month"></canvas></div>
+    </div>
+  </div>
 
   <div class="section">
     <h2>Tabla de cruce — Campañas Paid vs Sheet</h2>
@@ -161,9 +190,26 @@ const fmtInt = (n) => n == null ? '—' : Math.round(n).toLocaleString('es-AR');
 const fmtPct = (n) => n == null ? '—' : (n * 100).toFixed(1) + '%';
 const fmtARSk = (n) => { if (n == null) return '—'; if (n >= 1e6) return '$' + (n/1e6).toFixed(1) + 'M'; if (n >= 1e3) return '$' + (n/1e3).toFixed(0) + 'K'; return '$' + Math.round(n); };
 
+const COLOR = {
+  blue: '#0033A0',
+  blueLight: '#4D7CC7',
+  blueSoft: '#7FA5E5',
+  orange: '#FA6400',
+  orangeLight: '#FB8333',
+  orangeSoft: '#FDA866',
+  peach: '#FEE0CC',
+  gray: '#808285',
+  dark: '#2B2B2B',
+  good: '#10b981',
+  bad: '#ef4444'
+};
+// Paleta para doughnut/bar multi-categoría: azules y naranjas institucionales alternados, con grises al final
+const PALETTE = [COLOR.blue, COLOR.orange, COLOR.blueLight, COLOR.orangeLight, COLOR.blueSoft, COLOR.orangeSoft, '#A84308', '#002870', COLOR.peach, COLOR.gray, '#A0A0A0', '#CCCCCC'];
+
 const MAPPING_G = {"Search BA (simplificada)":"Search BA simp","Search INT":"Search INT","MaxPerformance":"MaxPerformance","Search BA (test a/b)":"Search BA test","Search Retention":"Search Retention","DemandGen Similares":"Google","DemandGen Remarketing":"Google","Search Movilidad":"Movilidad"};
 const MAPPING_M = {"Conv Auto AO":"Conv AO","Conv Auto AO (A/B test)":"Meta","Conv Auto AO (checkout)":"Meta"};
 const NEVER_SCALE = new Set(["Search INT"]);
+const MONTH_NAMES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
 
 let charts = {};
 
@@ -235,7 +281,7 @@ function renderCrossTable(d) {
   const head = `<tr><th>Fuente</th><th>Campaña</th><th class="num">Gasto</th><th class="num">Conv Plat</th><th class="num">Cotas</th><th class="num">% Discrep.</th><th class="num">Solas</th><th class="num">$/Cota</th><th class="num">$/Sola</th><th class="num">Conv%</th><th class="num">Capture</th></tr>`;
   const body = rows.map(r => {
     const discrep = (r.conv && r.cotas != null) ? (r.conv - r.cotas) / r.conv : null;
-    const discrepCls = discrep != null && discrep > 0.5 ? 'warning' : '';
+    const discrepCls = discrep != null && discrep > 0.5 ? 'warning' : (discrep != null && discrep < 0.1 ? 'good' : '');
     return `
     <tr>
       <td class="${r.src.toLowerCase()}">${r.src}</td>
@@ -248,7 +294,7 @@ function renderCrossTable(d) {
       <td class="num">${fmtARS(r.cpCota)}</td>
       <td class="num">${fmtARS(r.cpSola)}</td>
       <td class="num">${fmtPct(r.convPct)}</td>
-      <td class="num ${r.capture != null && r.capture < 0.3 ? 'warning' : ''}">${fmtPct(r.capture)}</td>
+      <td class="num ${r.capture != null && r.capture < 0.3 ? 'warning' : (r.capture != null && r.capture > 0.9 ? 'good' : '')}">${fmtPct(r.capture)}</td>
     </tr>`;
   }).join('');
   const t = document.getElementById('cross-table');
@@ -314,8 +360,8 @@ function renderComparison(d) {
   const card = (title, cls, rows) => `
     <div class="insight-card ${cls}" style="border-left-width:4px">
       <div class="tag">${title}</div>
-      <table style="margin-top:10px">
-        ${rows.map(([k,v]) => `<tr><td style="padding:6px 0; border:none; color:#94a3b8; font-size:12px">${k}</td><td class="num" style="padding:6px 0; border:none; font-weight:600">${v}</td></tr>`).join('')}
+      <table style="margin-top:10px; background: transparent">
+        ${rows.map(([k,v]) => `<tr><td style="padding:6px 0; border:none; color:#6A6A6A; font-size:12px; background: transparent">${k}</td><td class="num" style="padding:6px 0; border:none; font-weight:700; background: transparent; color: #2B2B2B">${v}</td></tr>`).join('')}
       </table>
     </div>`;
   document.getElementById('comparison-grid').innerHTML =
@@ -326,7 +372,7 @@ function renderComparison(d) {
       ['Solas atribuibles', fmtInt(gSolas)],
       ['$/Sola efectivo', gSolas ? fmtARS(gSpend/gSolas) : '—']
     ]) +
-    card('Meta Ads', 'info', [
+    card('Meta Ads', 'optimize', [
       ['Gasto', fmtARSk(mSpend)],
       ['Share inversión', ((mSpend/(gSpend+mSpend))*100||0).toFixed(0)+'%'],
       ['Cotas atribuibles', fmtInt(mCotas)],
@@ -345,7 +391,7 @@ function renderRanking(d) {
     <tr>
       <td>${i+1}</td>
       <td>${r.plat}</td>
-      <td style="color:${r.paid?'#fbbf24':'#a78bfa'}">${r.paid?'Paid':'Orgánico/Propio'}</td>
+      <td style="color:${r.paid?'#FA6400':'#4D7CC7'}; font-weight: 600">${r.paid?'Paid':'Orgánico/Propio'}</td>
       <td class="num sheet">${fmtInt(r.solas)}</td>
       <td class="num">${fmtPct(r.solas/total)}</td>
     </tr>`).join('');
@@ -382,19 +428,20 @@ function renderRecs(d) {
 }
 
 function renderCharts(d) {
-  Object.values(charts).forEach(c => c.destroy?.());
+  ['daily','spend','cotasPie','solasBar'].forEach(k => charts[k]?.destroy?.());
   const days = Object.keys(d.cotas.daily).sort();
-  const textCol = '#94a3b8', gridCol = '#1f2937';
+  const textCol = '#6A6A6A', gridCol = '#e5e9f0';
   Chart.defaults.color = textCol;
   Chart.defaults.borderColor = gridCol;
+  Chart.defaults.font.family = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
 
   charts.daily = new Chart(document.getElementById('chart-daily'), {
     type: 'line',
     data: { labels: days, datasets: [
-      { label: 'Cotas', data: days.map(k=>d.cotas.daily[k]), borderColor: '#a78bfa', backgroundColor: 'rgba(167,139,250,.1)', tension: .3, fill: true, yAxisID: 'y' },
-      { label: 'Solas', data: days.map(k=>d.solas.daily[k]), borderColor: '#fbbf24', backgroundColor: 'rgba(251,191,36,.1)', tension: .3, fill: true, yAxisID: 'y1' }
+      { label: 'Cotas', data: days.map(k=>d.cotas.daily[k]), borderColor: COLOR.blue, backgroundColor: 'rgba(0,51,160,.08)', tension: .3, fill: true, yAxisID: 'y', pointRadius: 2 },
+      { label: 'Solas', data: days.map(k=>d.solas.daily[k]), borderColor: COLOR.orange, backgroundColor: 'rgba(250,100,0,.08)', tension: .3, fill: true, yAxisID: 'y1', pointRadius: 2 }
     ]},
-    options: { responsive: true, maintainAspectRatio: false, scales: { y: { position: 'left', grid: { color: gridCol } }, y1: { position: 'right', grid: { display: false } }, x: { grid: { color: gridCol } } }, plugins: { legend: { position: 'bottom' } } }
+    options: { responsive: true, maintainAspectRatio: false, scales: { y: { position: 'left', grid: { color: gridCol }, ticks: { color: COLOR.blue } }, y1: { position: 'right', grid: { display: false }, ticks: { color: COLOR.orange } }, x: { grid: { color: gridCol } } }, plugins: { legend: { position: 'bottom' } } }
   });
 
   const rows = buildCrossRows(d).sort((a,b)=>b.spend-a.spend).slice(0,10);
@@ -402,24 +449,108 @@ function renderCharts(d) {
     type: 'bar',
     data: { labels: rows.map(r=>r.campaign), datasets: [{
       data: rows.map(r=>r.spend),
-      backgroundColor: rows.map(r=>r.src==='Google'?'#4ade80':'#60a5fa')
+      backgroundColor: rows.map(r=>r.src==='Google'?COLOR.blue:COLOR.orange)
     }]},
     options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { color: gridCol } }, y: { grid: { display: false } } } }
   });
 
   const platEntries = Object.entries(d.cotas.by_platform).sort((a,b)=>b[1]-a[1]);
-  const palette = ['#4ade80','#60a5fa','#fbbf24','#a78bfa','#f87171','#34d399','#818cf8','#fb923c','#2dd4bf','#f472b6','#94a3b8','#6b7280'];
   charts.cotasPie = new Chart(document.getElementById('chart-cotas-pie'), {
     type: 'doughnut',
-    data: { labels: platEntries.map(e=>e[0]), datasets: [{ data: platEntries.map(e=>e[1]), backgroundColor: palette }] },
+    data: { labels: platEntries.map(e=>e[0]), datasets: [{ data: platEntries.map(e=>e[1]), backgroundColor: PALETTE }] },
     options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { boxWidth: 12, font: { size: 11 } } } } }
   });
 
   const solEntries = Object.entries(d.solas.by_platform).sort((a,b)=>b[1]-a[1]);
   charts.solasBar = new Chart(document.getElementById('chart-solas-bar'), {
     type: 'bar',
-    data: { labels: solEntries.map(e=>e[0]), datasets: [{ data: solEntries.map(e=>e[1]), backgroundColor: '#fbbf24' }] },
+    data: { labels: solEntries.map(e=>e[0]), datasets: [{ data: solEntries.map(e=>e[1]), backgroundColor: solEntries.map((_,i) => i%2===0 ? COLOR.orange : COLOR.blue) }] },
     options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { color: gridCol } }, y: { grid: { display: false } } } }
+  });
+}
+
+function monthLabel(m) {
+  const [y, mm] = m.split('-');
+  return `${MONTH_NAMES[+mm-1]} ${y.slice(2)}`;
+}
+
+function aggByMonth(daily) {
+  const out = {};
+  for (const [d, v] of Object.entries(daily)) {
+    const m = d.slice(0, 7);
+    out[m] = (out[m] || 0) + v;
+  }
+  return out;
+}
+
+function renderMonthly() {
+  // Usa SIEMPRE el dataset completo (no filtrado) — la evolución mensual no depende del filtro de fecha.
+  const cotasByMonth = aggByMonth(DATA.cotas.daily);
+  const solasByMonth = aggByMonth(DATA.solas.daily);
+  const months = Object.keys(cotasByMonth).sort();
+
+  const totalCotas = Object.values(cotasByMonth).reduce((a,b)=>a+b,0);
+  const totalGSpend = DATA.google_ads.reduce((s,c)=>s+c.spend,0);
+  const totalMSpend = DATA.meta_ads.reduce((s,c)=>s+c.spend,0);
+  const gSpendByMonth = Object.fromEntries(months.map(m => [m, totalGSpend * cotasByMonth[m] / totalCotas]));
+  const mSpendByMonth = Object.fromEntries(months.map(m => [m, totalMSpend * cotasByMonth[m] / totalCotas]));
+
+  // MoM: último mes vs mes anterior
+  const cur = months[months.length - 1];
+  const prev = months[months.length - 2];
+  const pct = (a, b) => b ? ((a - b) / b * 100) : 0;
+
+  let stripHTML = '';
+  if (prev) {
+    const cotasMom = pct(cotasByMonth[cur], cotasByMonth[prev]);
+    const solasMom = pct(solasByMonth[cur], solasByMonth[prev]);
+    const spendMom = pct(gSpendByMonth[cur] + mSpendByMonth[cur], gSpendByMonth[prev] + mSpendByMonth[prev]);
+    const convCur = solasByMonth[cur]/cotasByMonth[cur];
+    const convPrev = solasByMonth[prev]/cotasByMonth[prev];
+    const convMom = pct(convCur, convPrev);
+
+    const momCard = (label, val, delta) => {
+      const cls = delta > 1 ? 'up' : delta < -1 ? 'down' : 'flat';
+      const arrow = delta > 1 ? '▲' : delta < -1 ? '▼' : '▬';
+      return `<div class="mom-card">
+        <div class="label">${label}</div>
+        <div class="value">${val}</div>
+        <div class="delta ${cls}">${arrow} ${delta >= 0 ? '+' : ''}${delta.toFixed(1)}% vs ${monthLabel(prev)}</div>
+      </div>`;
+    };
+
+    stripHTML =
+      momCard('Cotas ' + monthLabel(cur), fmtInt(cotasByMonth[cur]), cotasMom) +
+      momCard('Solas ' + monthLabel(cur), fmtInt(solasByMonth[cur]), solasMom) +
+      momCard('Gasto ' + monthLabel(cur), fmtARSk(gSpendByMonth[cur] + mSpendByMonth[cur]), spendMom) +
+      momCard('Conv% ' + monthLabel(cur), (convCur*100).toFixed(2)+'%', convMom);
+  } else {
+    stripHTML = `<div class="mom-card" style="grid-column: 1 / -1"><div class="label">Período único</div><div class="value">Sin mes previo para comparar</div></div>`;
+  }
+  document.getElementById('mom-strip').innerHTML = stripHTML;
+
+  ['cotasMonth','solasMonth','spendMonth'].forEach(k => charts[k]?.destroy?.());
+  const baseOpts = { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false } }, y: { grid: { color: '#e5e9f0' } } } };
+
+  charts.cotasMonth = new Chart(document.getElementById('chart-cotas-month'), {
+    type: 'bar',
+    data: { labels: months.map(monthLabel), datasets: [{ data: months.map(m => cotasByMonth[m]), backgroundColor: COLOR.blue, borderRadius: 6 }]},
+    options: baseOpts
+  });
+
+  charts.solasMonth = new Chart(document.getElementById('chart-solas-month'), {
+    type: 'bar',
+    data: { labels: months.map(monthLabel), datasets: [{ data: months.map(m => solasByMonth[m]), backgroundColor: COLOR.orange, borderRadius: 6 }]},
+    options: baseOpts
+  });
+
+  charts.spendMonth = new Chart(document.getElementById('chart-spend-month'), {
+    type: 'bar',
+    data: { labels: months.map(monthLabel), datasets: [
+      { label: 'Google', data: months.map(m => gSpendByMonth[m]), backgroundColor: COLOR.blue, stack: 's', borderRadius: 4 },
+      { label: 'Meta', data: months.map(m => mSpendByMonth[m]), backgroundColor: COLOR.orange, stack: 's', borderRadius: 4 }
+    ]},
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } }, scales: { x: { stacked: true, grid: { display: false } }, y: { stacked: true, grid: { color: '#e5e9f0' } } } }
   });
 }
 
@@ -471,7 +602,9 @@ document.getElementById('generated-at').textContent = new Date(DATA.generated_at
 document.getElementById('apply-filter').addEventListener('click', applyFilter);
 document.querySelectorAll('.presets button').forEach(b => b.addEventListener('click', () => applyPreset(b.dataset.preset)));
 
-// Default view: MTD (respeta el date_range del JSON). El dataset completo incluye Feb–Abr para permitir ver meses anteriores.
+// Evolución mensual usa SIEMPRE el dataset completo (no depende del filtro).
+renderMonthly();
+// Vista por defecto: MTD.
 applyPreset('mtd');
 </script>
 </body>
