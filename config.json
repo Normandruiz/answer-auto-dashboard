@@ -1,0 +1,37 @@
+{
+  "client": "Answer Seguros",
+  "segment": "Auto",
+  "timezone": "America/Argentina/Buenos_Aires",
+  "currency": "ARS",
+  "google_ads": {
+    "account_id": "185-655-0386",
+    "ocid": "1123223229",
+    "base_url": "https://ads.google.com/aw/campaigns",
+    "auth_params": {
+      "euid": "325839748",
+      "__u": "4137086052",
+      "uscid": "75801810",
+      "__c": "6127786690",
+      "authuser": "0"
+    }
+  },
+  "meta_ads": {
+    "ad_account_id": "986890659698619",
+    "business_id": "114161709289550",
+    "base_url": "https://adsmanager.facebook.com/adsmanager/manage/campaigns",
+    "campaign_name_filter": "Conversiones - Auto"
+  },
+  "google_sheet": {
+    "sheet_id": "1UchSy1QAHnvvUEYZYOFa0QHtipF9UykRwMv48q845eQ",
+    "tabs": {
+      "cotas": "BASE COTAS",
+      "solas": "BASE SOLAS"
+    },
+    "filter_ecommerce": "SI"
+  },
+  "github": {
+    "user": "normandruiz",
+    "repo": "answer-auto-dashboard",
+    "pages_url": "https://normandruiz.github.io/answer-auto-dashboard/"
+  }
+}

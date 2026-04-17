@@ -1,0 +1,21 @@
+{
+  "name": "answer-auto-dashboard",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Pipeline diario Answer Seguros — Auto (extract → merge → generate → deploy → email)",
+  "type": "module",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "node generate/build-report.js",
+    "deploy": "node deploy/publish.js",
+    "serve": "npx --yes http-server . -p 8080 -c-1",
+    "daily": "node run.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "nodemailer": "^6.9.14"
+  },
+  "devDependencies": {}
+}

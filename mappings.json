@@ -1,0 +1,23 @@
+{
+  "_comment": "Mapeo campaña publicitaria → nombre de Plataforma en el Google Sheet. Usado por process/merge-data.js para cruzar Gasto con Cotas/Solas.",
+  "google_ads_to_sheet": {
+    "Search BA (simplificada)": "Search BA simp",
+    "Search INT": "Search INT",
+    "MaxPerformance": "MaxPerformance",
+    "Search BA (test a/b)": "Search BA test",
+    "Search Retention": "Search Retention",
+    "DemandGen Similares": "Google",
+    "DemandGen Remarketing": "Google",
+    "Search Movilidad": "Movilidad"
+  },
+  "meta_ads_to_sheet": {
+    "Conv Auto AO": "Conv AO",
+    "Conv Auto AO (A/B test)": "Meta",
+    "Conv Auto AO (checkout)": "Meta"
+  },
+  "business_rules": {
+    "never_scale_budget": ["Search INT"],
+    "low_attribution_warning": ["Conv Auto AO", "Conv Auto AO (A/B test)", "Conv Auto AO (checkout)"],
+    "no_paid_cost": ["Orgánico", "Own Media", "Google (sin atrib)"]
+  }
+}
