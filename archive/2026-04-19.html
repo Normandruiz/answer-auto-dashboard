@@ -510,7 +510,7 @@ function aggByMonth(daily) {
 }
 
 function renderMonthly() {
-  // Usa SIEMPRE el dataset completo (no filtrado) — la evolución mensual no depende del filtro de fecha.
+  // Barras: siempre dataset completo. Cards MoM: mes activo según el filtro de fecha.
   const cotasByMonth = aggByMonth(DATA.cotas.daily);
   const solasByMonth = aggByMonth(DATA.solas.daily);
   const months = Object.keys(cotasByMonth).sort();
@@ -521,9 +521,12 @@ function renderMonthly() {
   const gSpendByMonth = Object.fromEntries(months.map(m => [m, totalGSpend * cotasByMonth[m] / totalCotas]));
   const mSpendByMonth = Object.fromEntries(months.map(m => [m, totalMSpend * cotasByMonth[m] / totalCotas]));
 
-  // MoM: último mes vs mes anterior
-  const cur = months[months.length - 1];
-  const prev = months[months.length - 2];
+  // MoM: mes activo = último mes dentro del rango filtrado; fallback al último disponible
+  const filterTo = document.getElementById('date-to').value;
+  const activeMon = filterTo ? filterTo.slice(0, 7) : null;
+  const cur = (activeMon && months.includes(activeMon)) ? activeMon : months[months.length - 1];
+  const curIdx = months.indexOf(cur);
+  const prev = curIdx > 0 ? months[curIdx - 1] : null;
   const pct = (a, b) => b ? ((a - b) / b * 100) : 0;
 
   let stripHTML = '';
@@ -582,6 +585,7 @@ function renderMonthly() {
 
 function renderAll(data) {
   renderKPIs(data);
+  renderMonthly();
   renderCrossTable(data);
   renderGoogleTable(data);
   renderMetaTable(data);
@@ -646,8 +650,6 @@ document.getElementById('generated-at').textContent = new Date(DATA.generated_at
 document.getElementById('apply-filter').addEventListener('click', applyFilter);
 document.querySelectorAll('.presets button').forEach(b => b.addEventListener('click', () => applyPreset(b.dataset.preset)));
 
-// Evolución mensual usa SIEMPRE el dataset completo (no depende del filtro).
-renderMonthly();
 // Vista por defecto: MTD.
 applyPreset('mtd');
 </script>
