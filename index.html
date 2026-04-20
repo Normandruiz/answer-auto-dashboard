@@ -233,14 +233,19 @@ function filterByDateRange(data, from, to) {
   const daily_solas = Object.fromEntries(Object.entries(data.solas.daily || {}).filter(([d]) => inRange(d)));
   const cotasTotal = Object.values(daily_cotas).reduce((a,b)=>a+b,0);
   const solasTotal = Object.values(daily_solas).reduce((a,b)=>a+b,0);
-  const ratio = cotasTotal && data.cotas.total ? cotasTotal / data.cotas.total : 1;
-  const ratioS = solasTotal && data.solas.total ? solasTotal / data.solas.total : 1;
+  // Ratio solo sobre días dentro del período de datos de campañas (evita ratio>1 con meses históricos)
+  const dataFrom = data.date_range?.from || '';
+  const dataTo   = data.date_range?.to   || '';
+  const inDataRange = (d) => inRange(d) && (!dataFrom || d >= dataFrom) && (!dataTo || d <= dataTo);
+  const cotasCamp = Object.entries(data.cotas.daily || {}).filter(([d]) => inDataRange(d)).reduce((s,[,v])=>s+v,0);
+  const ratio  = data.cotas.total ? Math.min(1, cotasCamp / data.cotas.total) : 1;
+  const ratioS = data.solas.total ? Math.min(1, solasTotal / data.solas.total) : 1;
   const scale = (obj, r) => Object.fromEntries(Object.entries(obj).map(([k,v])=>[k, Math.round(v*r)]));
   return {
     ...data,
     cotas: { total: cotasTotal, by_platform: scale(data.cotas.by_platform, ratio), daily: daily_cotas },
     solas: { total: solasTotal, by_platform: scale(data.solas.by_platform, ratioS), by_campaign: scale(data.solas.by_campaign || {}, ratioS), daily: daily_solas },
-    google_ads: data.google_ads.map(c => ({...c, spend: Math.round(c.spend*ratio), conversions: Math.round(c.conversions*ratio)})),
+    google_ads: data.google_ads.map(c => ({...c, spend: Math.round(c.spend*ratio), conversions: +(c.conversions*ratio).toFixed(2)})),
     meta_ads: data.meta_ads.map(c => ({...c, spend: Math.round(c.spend*ratio), results: Math.round(c.results*ratio)}))
   };
 }
@@ -605,6 +610,11 @@ function updateRangeLabel(from, to) {
 function applyFilter() {
   const from = document.getElementById('date-from').value;
   const to = document.getElementById('date-to').value;
+  // Si el rango seleccionado coincide con AYER, usar datos exactos (no ratio)
+  if (DATA.date_range.ayer && from === DATA.date_range.ayer && to === DATA.date_range.ayer) {
+    applyPreset('today');
+    return;
+  }
   const filtered = filterByDateRange(DATA, from, to);
   renderAll(filtered);
   updateRangeLabel(from, to);
@@ -618,16 +628,20 @@ function applyPreset(preset) {
   if (preset === 'today') {
     const ayerDate = DATA.date_range.ayer || iso(today);
     from.value = to.value = ayerDate;
-    // Usar datos AYER directamente (evita ratio=0 cuando el Sheet no tiene ese día)
+    // Usar datos AYER directamente (evita ratio con datos incompletos)
     if (DATA.google_ads_ayer?.length) {
-      const cotas_ayer_bp = {};
-      const solas_ayer_bp = {};
+      // Escalar by_platform proporcionalmente al peso de AYER en el MTD
+      const scaleObj = (obj, r) => Object.fromEntries(Object.entries(obj).map(([k,v])=>[k, Math.round(v*r)]));
+      const rc = DATA.cotas.total ? (DATA.cotas.ayer || 0) / DATA.cotas.total : 0;
+      const rs = DATA.solas.total ? (DATA.solas.ayer || 0) / DATA.solas.total : 0;
+      const ayerDaily = Object.fromEntries([[ayerDate, DATA.cotas.ayer || 0]]);
+      const ayerDailyS = Object.fromEntries([[ayerDate, DATA.solas.ayer || 0]]);
       const ayerData = {
         ...DATA,
         google_ads: DATA.google_ads_ayer,
         meta_ads: DATA.meta_ads_ayer || [],
-        cotas: { ...DATA.cotas, total: DATA.cotas.ayer || 0, by_platform: cotas_ayer_bp, daily: {} },
-        solas: { ...DATA.solas, total: DATA.solas.ayer || 0, by_platform: solas_ayer_bp, daily: {} }
+        cotas: { ...DATA.cotas, total: DATA.cotas.ayer || 0, by_platform: scaleObj(DATA.cotas.by_platform, rc), daily: ayerDaily },
+        solas: { ...DATA.solas, total: DATA.solas.ayer || 0, by_platform: scaleObj(DATA.solas.by_platform, rs), daily: ayerDailyS }
       };
       renderAll(ayerData);
       updateRangeLabel(ayerDate, ayerDate);
