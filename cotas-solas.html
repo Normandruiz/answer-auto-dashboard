@@ -1,0 +1,1077 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Answer Seguros — Cota / Solas Analysis</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+body { background: linear-gradient(180deg, #ffffff 0%, #f0f3f8 100%); background-attachment: fixed; color: #2B2B2B; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.5; padding: 24px; min-height: 100vh; }
+.container { max-width: 1440px; margin: 0 auto; }
+
+header.hero { background: #ffffff; padding: 24px 32px; border-radius: 16px; border: 1px solid #e5e9f0; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,51,160,.06); border-top: 4px solid; border-image: linear-gradient(90deg, #0033A0, #FA6400) 1; }
+header.hero .brand-row { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-bottom: 16px; }
+header.hero .brand-row .logo { height: 64px; width: auto; max-width: 240px; object-fit: contain; }
+header.hero .title-block { flex: 1; text-align: center; }
+header.hero h1 { font-size: 28px; background: linear-gradient(90deg, #0033A0, #FA6400); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 6px; font-weight: 800; }
+header.hero .sub { color: #6A6A6A; font-size: 13px; }
+header.hero .meta { display: flex; gap: 24px; justify-content: center; flex-wrap: wrap; font-size: 13px; color: #808285; padding-top: 14px; border-top: 1px solid #f0f3f8; }
+header.hero .meta strong { color: #2B2B2B; font-weight: 600; }
+
+.back-btn { display: inline-flex; align-items: center; gap: 8px; background: #f0f3f8; border: 1px solid #e5e9f0; color: #0033A0; font-weight: 600; font-size: 13px; padding: 10px 18px; border-radius: 8px; text-decoration: none; margin-bottom: 16px; transition: all .15s; }
+.back-btn:hover { background: #e5e9f0; border-color: #4D7CC7; }
+
+.filters { background: #ffffff; border: 1px solid #e5e9f0; border-radius: 12px; padding: 20px; margin-bottom: 24px; display: flex; gap: 16px; align-items: center; flex-wrap: wrap; box-shadow: 0 1px 3px rgba(0,51,160,.04); }
+.filters label { font-size: 12px; color: #6A6A6A; display: flex; flex-direction: column; gap: 6px; font-weight: 600; }
+.filters input[type=date] { background: #f0f3f8; border: 1px solid #e5e9f0; color: #2B2B2B; padding: 8px 12px; border-radius: 8px; font-size: 14px; }
+.filters button { background: #f0f3f8; border: 1px solid #e5e9f0; color: #2B2B2B; padding: 8px 14px; border-radius: 8px; cursor: pointer; font-size: 13px; transition: all .15s; font-weight: 500; }
+.filters button:hover { background: #e5e9f0; border-color: #4D7CC7; color: #0033A0; }
+.filters button.primary { background: linear-gradient(90deg, #0033A0, #FA6400); border: none; color: #ffffff; font-weight: 700; }
+.filters button.primary:hover { filter: brightness(1.08); color: #ffffff; }
+.filters .presets { display: flex; gap: 8px; flex-wrap: wrap; margin-left: auto; }
+
+.kpi-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 16px; margin-bottom: 24px; }
+.kpi-card { background: #ffffff; border: 1px solid #e5e9f0; border-radius: 12px; padding: 20px; border-left: 4px solid #0033A0; box-shadow: 0 1px 3px rgba(0,51,160,.04); }
+.kpi-card .label { font-size: 11px; color: #808285; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; font-weight: 600; }
+.kpi-card .value { font-size: 24px; font-weight: 700; color: #2B2B2B; }
+.kpi-card .sub { font-size: 11px; color: #808285; margin-top: 4px; }
+.kpi-card.blue { border-left-color: #0033A0; } .kpi-card.blue .value { color: #0033A0; }
+.kpi-card.orange { border-left-color: #FA6400; } .kpi-card.orange .value { color: #FA6400; }
+.kpi-card.green { border-left-color: #10b981; } .kpi-card.green .value { color: #10b981; }
+.kpi-card.mid { border-left-color: #4D7CC7; } .kpi-card.mid .value { color: #4D7CC7; }
+
+.section { background: #ffffff; border: 1px solid #e5e9f0; border-radius: 12px; padding: 24px; margin-bottom: 24px; box-shadow: 0 1px 3px rgba(0,51,160,.04); }
+.section h2 { font-size: 18px; margin-bottom: 16px; color: #2B2B2B; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+.section h2 .badge { font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 20px; background: #f0f3f8; color: #6A6A6A; }
+
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th { background: #f0f3f8; color: #6A6A6A; font-weight: 700; padding: 10px 12px; text-align: left; border-bottom: 1px solid #e5e9f0; font-size: 11px; text-transform: uppercase; letter-spacing: 0.3px; }
+th.num, td.num { text-align: right; font-variant-numeric: tabular-nums; }
+td { padding: 10px 12px; border-bottom: 1px solid #f0f3f8; color: #2B2B2B; }
+tr:hover td { background: #fafbfd; }
+td.blue { color: #0033A0; font-weight: 600; }
+td.orange { color: #FA6400; font-weight: 600; }
+td.mid { color: #4D7CC7; font-weight: 600; }
+td.green { color: #10b981; font-weight: 600; }
+td.warning { color: #ef4444; font-weight: 700; }
+td.good { color: #10b981; font-weight: 700; }
+td.total-row { background: #f0f3f8 !important; font-weight: 700; border-top: 2px solid #e5e9f0; }
+
+.charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px; }
+.charts-grid.three { grid-template-columns: repeat(3, 1fr); }
+.chart-box { background: #ffffff; border: 1px solid #e5e9f0; border-radius: 12px; padding: 24px; box-shadow: 0 1px 3px rgba(0,51,160,.04); }
+.chart-box h3 { margin-bottom: 16px; color: #2B2B2B; font-size: 15px; font-weight: 700; }
+.chart-box canvas { max-height: 300px; }
+
+/* Funnel */
+.funnel-wrap { display: flex; flex-direction: column; align-items: center; gap: 0; }
+.funnel-step { display: flex; align-items: center; width: 100%; max-width: 600px; }
+.funnel-bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; }
+.funnel-bar { height: 56px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 700; color: #fff; font-size: 18px; transition: width .4s; }
+.funnel-label { font-size: 12px; color: #808285; margin-top: 4px; font-weight: 600; text-align: center; }
+.funnel-arrow { font-size: 20px; color: #e5e9f0; text-align: center; padding: 4px 0; width: 100%; max-width: 600px; }
+.funnel-pct { font-size: 13px; color: #10b981; font-weight: 700; padding: 0 16px; text-align: center; min-width: 72px; }
+
+/* Month table */
+.month-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+
+.recommendations { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+.insight-card { background: #fafbfd; border: 1px solid #e5e9f0; border-radius: 10px; padding: 16px; border-left: 4px solid #808285; }
+.insight-card.scale  { border-left-color: #0033A0; background: linear-gradient(90deg, rgba(0,51,160,.04), #fafbfd); }
+.insight-card.optimize { border-left-color: #FA6400; background: linear-gradient(90deg, rgba(250,100,0,.06), #fafbfd); }
+.insight-card.pause  { border-left-color: #A84308; background: linear-gradient(90deg, rgba(168,67,8,.06), #fafbfd); }
+.insight-card.info   { border-left-color: #4D7CC7; background: linear-gradient(90deg, rgba(77,124,199,.05), #fafbfd); }
+.insight-card .tag   { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+.insight-card.scale .tag { color: #0033A0; } .insight-card.optimize .tag { color: #FA6400; }
+.insight-card.pause .tag { color: #A84308; } .insight-card.info .tag { color: #4D7CC7; }
+.insight-card .title { font-size: 14px; font-weight: 700; color: #2B2B2B; margin-bottom: 6px; }
+.insight-card .body  { font-size: 12px; color: #6A6A6A; line-height: 1.5; }
+
+footer { text-align: center; padding: 24px; color: #808285; font-size: 12px; }
+
+@media (max-width: 1100px) {
+  .kpi-grid { grid-template-columns: repeat(3, 1fr); }
+  .charts-grid, .charts-grid.three { grid-template-columns: 1fr; }
+  .month-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 640px) {
+  .kpi-grid { grid-template-columns: 1fr 1fr; }
+}
+@media print {
+  body { background: #ffffff !important; }
+  .filters, .back-btn { display: none; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header class="hero">
+    <div class="brand-row">
+      <img src="assets/logo-answer.png" alt="Answer Galicia Seguros" class="logo left" onerror="this.style.visibility='hidden'">
+      <div class="title-block">
+        <h1>Cota / Solas — Análisis de Conversión</h1>
+        <div class="sub">BASE COTAS × BASE SOLAS · Desglose por plataforma, mes y embudo de conversión</div>
+      </div>
+      <img src="assets/logo-beyond.png" alt="Beyond" class="logo right" onerror="this.style.visibility='hidden'">
+    </div>
+    <div class="meta">
+      <span>Generado: <strong id="generated-at"></strong></span>
+      <span>Período: <strong id="date-range-label"></strong></span>
+      <span>Fuente: <strong>Google Sheet interno · Google Ads · Meta Ads</strong></span>
+    </div>
+  </header>
+
+  <a href="index.html" class="back-btn">
+    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+    Volver al Dashboard Principal
+  </a>
+
+  <div class="filters">
+    <label>Desde<input type="date" id="date-from"></label>
+    <label>Hasta<input type="date" id="date-to"></label>
+    <button class="primary" id="apply-filter">Aplicar</button>
+    <div class="presets">
+      <button data-preset="today">Hoy</button>
+      <button data-preset="7d">Últimos 7</button>
+      <button data-preset="mtd">Mes actual</button>
+      <button data-preset="lastmonth">Mes anterior</button>
+      <button data-preset="all">Todo</button>
+    </div>
+  </div>
+
+  <!-- KPI strip -->
+  <div class="kpi-grid" id="kpi-grid"></div>
+
+  <!-- Embudo -->
+  <div class="section">
+    <h2>Embudo de Conversión <span class="badge" id="funnel-period"></span></h2>
+    <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 32px; align-items:start;">
+      <div id="funnel-visual"></div>
+      <div>
+        <h3 style="font-size:14px; color:#6A6A6A; margin-bottom:12px; font-weight:600;">Detalle por etapa</h3>
+        <table id="funnel-table"><thead></thead><tbody></tbody></table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Desglose por plataforma con inversión -->
+  <div class="section">
+    <h2>Desglose por Plataforma / Código de Campaña</h2>
+    <div style="overflow-x:auto">
+      <table id="platform-table"><thead></thead><tbody></tbody></table>
+    </div>
+  </div>
+
+  <!-- Charts: evolución mensual -->
+  <div class="charts-grid three">
+    <div class="chart-box"><h3>Cotas por mes</h3><canvas id="chart-cotas-month"></canvas></div>
+    <div class="chart-box"><h3>Solas por mes</h3><canvas id="chart-solas-month"></canvas></div>
+    <div class="chart-box"><h3>Conv% por mes</h3><canvas id="chart-conv-month"></canvas></div>
+  </div>
+
+  <!-- CPL / CPA comparison -->
+  <div class="section">
+    <h2>Comparativa CPL / CPA por Plataforma</h2>
+    <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items:start;">
+      <div>
+        <h3 style="font-size:14px; color:#6A6A6A; margin-bottom:12px; font-weight:600;">CPL ($/Sola) por plataforma</h3>
+        <canvas id="chart-cpl" style="max-height:280px"></canvas>
+      </div>
+      <div>
+        <h3 style="font-size:14px; color:#6A6A6A; margin-bottom:12px; font-weight:600;">CPA ($/Cota) por plataforma</h3>
+        <canvas id="chart-cpa" style="max-height:280px"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Evolución mensual tabla -->
+  <div class="section">
+    <h2>Evolución Mensual</h2>
+    <div style="overflow-x:auto">
+      <table id="monthly-table"><thead></thead><tbody></tbody></table>
+    </div>
+  </div>
+
+  <!-- Daily trend -->
+  <div class="chart-box" style="margin-bottom:24px;">
+    <h3>Cotas y Solas diarias <span style="font-size:12px; font-weight:400; color:#808285; margin-left:8px;">· <span style="background:rgba(250,100,0,0.12); padding:2px 7px; border-radius:4px; color:#FA6400; font-weight:600; font-size:11px;">Vie–Dom</span> fin de semana</span></h3>
+    <canvas id="chart-daily" style="max-height:300px"></canvas>
+  </div>
+
+  <!-- Comparativo semanal -->
+  <div class="section">
+    <h2>Comparativo Semanal por Campaña</h2>
+
+    <!-- Panel de selección de semanas -->
+    <div style="background:#f8f9fc; border:1px solid #e5e9f0; border-radius:10px; padding:16px; margin-bottom:20px;">
+      <div style="font-size:11px; font-weight:700; color:#6A6A6A; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:12px;">Seleccioná las semanas a comparar</div>
+      <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:12px;">
+        <div>
+          <div style="font-size:11px; font-weight:700; color:#0033A0; margin-bottom:5px;">● Semana 1</div>
+          <div style="display:flex; gap:4px; align-items:center;">
+            <input type="date" id="wk1-from" style="flex:1; background:#fff; border:1px solid #e5e9f0; color:#2B2B2B; padding:6px 6px; border-radius:6px; font-size:12px; min-width:0;">
+            <span style="color:#aaa; font-size:10px; flex-shrink:0;">–</span>
+            <input type="date" id="wk1-to" style="flex:1; background:#fff; border:1px solid #e5e9f0; color:#2B2B2B; padding:6px 6px; border-radius:6px; font-size:12px; min-width:0;">
+          </div>
+        </div>
+        <div>
+          <div style="font-size:11px; font-weight:700; color:#FA6400; margin-bottom:5px;">● Semana 2</div>
+          <div style="display:flex; gap:4px; align-items:center;">
+            <input type="date" id="wk2-from" style="flex:1; background:#fff; border:1px solid #e5e9f0; color:#2B2B2B; padding:6px 6px; border-radius:6px; font-size:12px; min-width:0;">
+            <span style="color:#aaa; font-size:10px; flex-shrink:0;">–</span>
+            <input type="date" id="wk2-to" style="flex:1; background:#fff; border:1px solid #e5e9f0; color:#2B2B2B; padding:6px 6px; border-radius:6px; font-size:12px; min-width:0;">
+          </div>
+        </div>
+        <div>
+          <div style="font-size:11px; font-weight:700; color:#4D7CC7; margin-bottom:5px;">● Semana 3</div>
+          <div style="display:flex; gap:4px; align-items:center;">
+            <input type="date" id="wk3-from" style="flex:1; background:#fff; border:1px solid #e5e9f0; color:#2B2B2B; padding:6px 6px; border-radius:6px; font-size:12px; min-width:0;">
+            <span style="color:#aaa; font-size:10px; flex-shrink:0;">–</span>
+            <input type="date" id="wk3-to" style="flex:1; background:#fff; border:1px solid #e5e9f0; color:#2B2B2B; padding:6px 6px; border-radius:6px; font-size:12px; min-width:0;">
+          </div>
+        </div>
+        <div>
+          <div style="font-size:11px; font-weight:700; color:#10b981; margin-bottom:5px;">● Semana 4</div>
+          <div style="display:flex; gap:4px; align-items:center;">
+            <input type="date" id="wk4-from" style="flex:1; background:#fff; border:1px solid #e5e9f0; color:#2B2B2B; padding:6px 6px; border-radius:6px; font-size:12px; min-width:0;">
+            <span style="color:#aaa; font-size:10px; flex-shrink:0;">–</span>
+            <input type="date" id="wk4-to" style="flex:1; background:#fff; border:1px solid #e5e9f0; color:#2B2B2B; padding:6px 6px; border-radius:6px; font-size:12px; min-width:0;">
+          </div>
+        </div>
+      </div>
+      <div style="display:flex; gap:8px; justify-content:flex-end;">
+        <button id="reset-weekly" style="background:#f0f3f8; border:1px solid #e5e9f0; color:#2B2B2B; padding:8px 14px; border-radius:8px; cursor:pointer; font-size:13px; font-weight:500;">↺ Restablecer</button>
+        <button id="apply-weekly" style="background:linear-gradient(90deg,#0033A0,#4D7CC7); border:none; color:#fff; padding:8px 20px; border-radius:8px; cursor:pointer; font-size:13px; font-weight:700;">Comparar semanas</button>
+      </div>
+    </div>
+
+    <div class="charts-grid" style="margin-bottom:20px;">
+      <div class="chart-box"><h3>Cotas por semana</h3><canvas id="chart-weekly-cotas" style="max-height:260px"></canvas></div>
+      <div class="chart-box"><h3>Solas por semana</h3><canvas id="chart-weekly-solas" style="max-height:260px"></canvas></div>
+    </div>
+    <div style="overflow-x:auto">
+      <table id="weekly-table"><thead></thead><tbody></tbody></table>
+    </div>
+  </div>
+
+  <!-- Comparativo fines de semana -->
+  <div class="section">
+    <h2>Comparativo de Fines de Semana <span class="badge">Vie · Sáb · Dom</span></h2>
+    <div id="weekend-kpis" style="display:flex; gap:16px; flex-wrap:wrap; margin-bottom:20px;"></div>
+    <div class="charts-grid" style="margin-bottom:20px;">
+      <div class="chart-box"><h3>Cotas por fin de semana</h3><canvas id="chart-weekend-cotas" style="max-height:260px"></canvas></div>
+      <div class="chart-box"><h3>Solas por fin de semana</h3><canvas id="chart-weekend-solas" style="max-height:260px"></canvas></div>
+    </div>
+    <div style="overflow-x:auto">
+      <table id="weekend-table"><thead></thead><tbody></tbody></table>
+    </div>
+  </div>
+
+  <!-- Recomendaciones -->
+  <div class="section">
+    <h2>Recomendaciones para Aumentar Cotas y Solas <span class="badge">Top 10</span></h2>
+    <div id="recs-cs" class="recommendations"></div>
+  </div>
+
+  <footer>
+    <div>Fuentes: BASE COTAS · BASE SOLAS · Google Ads · Meta Ads · Moneda: ARS</div>
+    <div style="margin-top:6px">Answer Seguros · Grupo Galicia · Dashboard autogenerado</div>
+  </footer>
+</div>
+
+<script id="dashboard-data" type="application/json">{"generated_at":"2026-04-20T09:00:00.000Z","date_range":{"from":"2026-04-01","to":"2026-04-19","label":"Abril 2026 — MTD al 19","ayer":"2026-04-19"},"google_ads":[{"campaign":"DemandGen - Auto - Similares","status":"Entidad apta (limitada)","spend":3374806.02,"conversions":14.87,"cpa":226953.6,"impressions":7727918,"clicks":304734,"ayer_spend":162357.1,"ayer_conversions":0,"ayer_results":null,"ayer_cpa":0,"ayer_cpr":null},{"campaign":"MaxPerformance - Auto - Segment","status":"Entidad apta (limitada)","spend":17067913.26,"conversions":972.01,"cpa":17559.53,"impressions":1543443,"clicks":17405,"ayer_spend":1014299.38,"ayer_conversions":43.58,"ayer_results":null,"ayer_cpa":23274.2,"ayer_cpr":null},{"campaign":"Search - Auto - Segment - BA (simplificada)","status":"Entidad apta (limitada)","spend":42888641.5,"conversions":2014,"cpa":21296.25,"impressions":241160,"clicks":13742,"ayer_spend":1585199.8,"ayer_conversions":59.97,"ayer_results":null,"ayer_cpa":26434.53,"ayer_cpr":null},{"campaign":"Search - Auto - Segment - INT","status":"Entidad apta (limitada)","spend":17154028.41,"conversions":950,"cpa":18056.87,"impressions":153522,"clicks":7968,"ayer_spend":506093.1,"ayer_conversions":36.99,"ayer_results":null,"ayer_cpa":13681.73,"ayer_cpr":null},{"campaign":"DemandGen - Auto - Remarketing","status":"En pausa","spend":707863.14,"conversions":14.95,"cpa":47349.37,"impressions":73371,"clicks":1178,"ayer_spend":0,"ayer_conversions":0,"ayer_results":null,"ayer_cpa":0,"ayer_cpr":null},{"campaign":"Search - Auto - Segment - BA (test a/b)","status":"Entidad apta (limitada)","spend":5089492.05,"conversions":273,"cpa":18641.73,"impressions":43397,"clicks":1820,"ayer_spend":159460.58,"ayer_conversions":9,"ayer_results":null,"ayer_cpa":17717.84,"ayer_cpr":null},{"campaign":"Search - Auto - Retention","status":"Apto","spend":4773908.54,"conversions":111,"cpa":43008.19,"impressions":13966,"clicks":3495,"ayer_spend":159007.64,"ayer_conversions":5,"ayer_results":null,"ayer_cpa":31801.53,"ayer_cpr":null},{"campaign":"Search - Movilidad - Segment  - AR","status":"Apto","spend":204464.54,"conversions":1,"cpa":204464.54,"impressions":3148,"clicks":220,"ayer_spend":7668.66,"ayer_conversions":0,"ayer_results":null,"ayer_cpa":0,"ayer_cpr":null}],"meta_ads":[{"campaign":"Conversiones - Auto - AO","status":"Activa","spend":7624146.25,"results":1392,"conversions":1392,"cpa":5477.12,"impressions":2697846,"clicks":12410,"ayer_spend":412811.62,"ayer_conversions":69,"ayer_results":69,"ayer_cpa":5982.78,"ayer_cpr":5982.78},{"campaign":"Conversiones - Auto - AO - (A/B test)","status":"Activa","spend":4338727.98,"results":1161,"conversions":1161,"cpa":3737.06,"impressions":1558515,"clicks":55540,"ayer_spend":241858.05,"ayer_conversions":52,"ayer_results":52,"ayer_cpa":4651.12,"ayer_cpr":4651.12},{"campaign":"Conversiones - Auto - AO (checkout)","status":"Activa","spend":3939935.26,"results":259,"conversions":259,"cpa":15212.11,"impressions":621132,"clicks":10819,"ayer_spend":242147.96,"ayer_conversions":25,"ayer_results":25,"ayer_cpa":9685.92,"ayer_cpr":9685.92},{"campaign":"Trafico - Celu - AR","status":"Activa","spend":533519.25,"results":6413,"conversions":6413,"cpa":83.19,"impressions":655155,"clicks":12638,"ayer_spend":29811.04,"ayer_conversions":270,"ayer_results":270,"ayer_cpa":110.41,"ayer_cpr":110.41},{"campaign":"Conversiones - Hogar - AO","status":"Activa","spend":428364.27,"results":31,"conversions":31,"cpa":13818.2,"impressions":81141,"clicks":577,"ayer_spend":35602.34,"ayer_conversions":4,"ayer_results":4,"ayer_cpa":8900.58,"ayer_cpr":8900.58},{"campaign":"Trafico - AP - AO (crossell)","status":"Activa","spend":226731.67,"results":835,"conversions":835,"cpa":271.53,"impressions":114082,"clicks":1753,"ayer_spend":14458.2,"ayer_conversions":70,"ayer_results":70,"ayer_cpa":206.55,"ayer_cpr":206.55},{"campaign":"Trafico - Bolso - AR","status":"Activa","spend":215467.65,"results":4486,"conversions":4486,"cpa":48.03,"impressions":182491,"clicks":5945,"ayer_spend":13188.51,"ayer_conversions":298,"ayer_results":298,"ayer_cpa":44.26,"ayer_cpr":44.26},{"campaign":"Mensajes - Hogar- AO","status":"Activa","spend":204302.03,"results":121,"conversions":121,"cpa":1688.45,"impressions":28992,"clicks":321,"ayer_spend":12387.39,"ayer_conversions":14,"ayer_results":14,"ayer_cpa":884.81,"ayer_cpr":884.81},{"campaign":"Conversiones - Hogar - AO - (crossell)","status":"Activa","spend":202624.57,"results":2,"conversions":2,"cpa":101312.29,"impressions":34488,"clicks":817,"ayer_spend":12983.77,"ayer_conversions":0,"ayer_results":0,"ayer_cpa":0,"ayer_cpr":0},{"campaign":"Trafico - Alianza Pax - (asistencia al viajero) - V2","status":"Activa","spend":158304.39,"results":1244,"conversions":1244,"cpa":127.25,"impressions":86613,"clicks":4133,"ayer_spend":14127.29,"ayer_conversions":78,"ayer_results":78,"ayer_cpa":181.12,"ayer_cpr":181.12}],"google_ads_ayer":[{"campaign":"DemandGen - Auto - Similares","status":"Entidad apta (limitada)","spend":162357.1,"conversions":0,"cpa":0,"impressions":374518,"clicks":15022},{"campaign":"MaxPerformance - Auto - Segment","status":"Entidad apta (limitada)","spend":1014299.38,"conversions":43.58,"cpa":23274.2,"impressions":112471,"clicks":1079},{"campaign":"Search - Auto - Segment - BA (simplificada)","status":"Entidad apta (limitada)","spend":1585199.8,"conversions":59.97,"cpa":26434.53,"impressions":10446,"clicks":453},{"campaign":"Search - Auto - Segment - INT","status":"Entidad apta (limitada)","spend":506093.1,"conversions":36.99,"cpa":13681.73,"impressions":5078,"clicks":215},{"campaign":"Search - Auto - Segment - BA (test a/b)","status":"Entidad apta (limitada)","spend":159460.58,"conversions":9,"cpa":17717.84,"impressions":1895,"clicks":53},{"campaign":"Search - Auto - Retention","status":"Apto","spend":159007.64,"conversions":5,"cpa":31801.53,"impressions":371,"clicks":78},{"campaign":"Search - Movilidad - Segment  - AR","status":"Apto","spend":7668.66,"conversions":0,"cpa":0,"impressions":87,"clicks":10}],"meta_ads_ayer":[{"campaign":"Conversiones - Auto - AO","status":"Activa","spend":412811.62,"results":69,"conversions":69,"cpa":5982.78},{"campaign":"Conversiones - Auto - AO - (A/B test)","status":"Activa","spend":241858.05,"results":52,"conversions":52,"cpa":4651.12},{"campaign":"Conversiones - Auto - AO (checkout)","status":"Activa","spend":242147.96,"results":25,"conversions":25,"cpa":9685.92},{"campaign":"Trafico - Celu - AR","status":"Activa","spend":29811.04,"results":270,"conversions":270,"cpa":110.41},{"campaign":"Conversiones - Hogar - AO","status":"Activa","spend":35602.34,"results":4,"conversions":4,"cpa":8900.58},{"campaign":"Trafico - AP - AO (crossell)","status":"Activa","spend":14458.2,"results":70,"conversions":70,"cpa":206.55},{"campaign":"Trafico - Bolso - AR","status":"Activa","spend":13188.51,"results":298,"conversions":298,"cpa":44.26},{"campaign":"Trafico - Alianza Pax - (asistencia al viajero) - V2","status":"Activa","spend":14127.29,"results":78,"conversions":78,"cpa":181.12},{"campaign":"Mensajes - Hogar- AO","status":"Activa","spend":12387.39,"results":14,"conversions":14,"cpa":884.81},{"campaign":"Conversiones - Hogar - AO - (crossell)","status":"Activa","spend":12983.77,"results":0,"conversions":0,"cpa":0}],"cotas":{"total":7604,"ayer":309,"by_campaign_code":{"8508":{"campaign":"ANSWER_ECOMMERCE_25_mensual","plataforma":"Orgánico","cotas":1050},"8734":{"campaign":"Emblue_Email_AutoWinbank_50X3_NA","plataforma":"Own media","cotas":1},"8741":{"campaign":"MGM_25X12meses","plataforma":"Own media","cotas":14},"8753":{"campaign":"Emblue_Email_RMKT_50x3","plataforma":"Own media","cotas":77},"8758":{"campaign":"Google_Search_AutoSegmentBA_25x6_NA","plataforma":"Search - Auto - Segment - BA (simplificada)","cotas":606},"8761":{"campaign":"Google_Search_AutoSegmentInt_50x3_NA","plataforma":"Search - Auto - Segment - INT","cotas":927},"8768":{"campaign":"Google_Search_AutoRetention_50x3_NA","plataforma":"Search - Auto - Retention","cotas":615},"8770":{"campaign":"Google_DemandGen_AutoCupon_25x6_NA","plataforma":"DemandGen - Auto - Similares","cotas":1},"8772":{"campaign":"Google_PerformanceMax_AutoSegment_25x6_NA","plataforma":"MaxPerformance - Auto - Segment","cotas":374},"8778":{"campaign":"WebGS_organico_Auto_25x6_NA","plataforma":"Orgánico","cotas":227},"8785":{"campaign":"Chat_WhatsApp_Auto_25x6_NA","plataforma":"Own Media","cotas":63},"8786":{"campaign":"META_organico_Auto_25x6_NA","plataforma":"Meta","cotas":8},"8788":{"campaign":"Google_Search_AutoSegmentBA_25x6_Test_NA","plataforma":"Search - Auto - Segment - BA (simplificada)","cotas":717},"8790":{"campaign":"Google_DemandGen_AutoRmkt_50x3_NA","plataforma":"DemandGen - Auto - Similares","cotas":19},"8803":{"campaign":"Whatsapp_RMKT_AUTO_50X3_NA","plataforma":"Own Media","cotas":3},"8807":{"campaign":"DV360_Display_Auto_25x6_NA","plataforma":"DV","cotas":1},"8809":{"campaign":"Meta_Conversiones_AutoOptiCheckout_50x3_NA","plataforma":"Conversiones - Auto - AO (checkout)","cotas":1},"8885":{"campaign":"Web_Ecommerce_0KM_40X6_organico","plataforma":"Orgánico","cotas":18},"8886":{"campaign":"Web_Ecommerce_1A6AÑOS_30X6_organica","plataforma":"Orgánico","cotas":74},"8924":{"campaign":"Whatsapp_RMKT_50X3_Manual","plataforma":"Own Media","cotas":250},"8934":{"campaign":"Google_Provincia_Localidad_Auto_25x6_Prueba","plataforma":"Search - Auto - Segment - BA (test a/b)","cotas":270},"8945":{"campaign":"Meta_Conversiones_AutoAO_AnswerWeek_Auto_50x6","plataforma":"Conversiones - Auto - AO","cotas":40},"8952":{"campaign":"Meta_Conversiones_AutoOptiCheckout_AnswerWeek_Auto_50x6","plataforma":"Conversiones - Auto - AO (checkout)","cotas":85},"8953":{"campaign":"Meta_Conversiones_AutoABTest_AnswerWeek_Auto_50x6","plataforma":"Conversiones - Auto - AO - (A/B test)","cotas":7},"8967":{"campaign":"Whatsapp_RMKT_30X3_AUTO_AO","plataforma":"Own Media","cotas":4},"8996":{"campaign":"Meta_Conversiones_AutoAO_40x6_0KM_AUTO_AO","plataforma":"Conversiones - Auto - AO","cotas":1},"9001":{"campaign":"Meta_InfluencerLucas_Auto_50x3","plataforma":"Conversiones - Auto - AO","cotas":361},"9006":{"campaign":"Meta_Conversiones_AutoAO_40x6_0KM_AUTO_AO","plataforma":"Conversiones - Auto - AO","cotas":85},"9007":{"campaign":"Meta_Conversiones_AutoABTest_40x6_0KM_AUTO_AO","plataforma":"Conversiones - Auto - AO - (A/B test)","cotas":8},"9021":{"campaign":"Meta_InfluencerMujeres_Auto_50x3","plataforma":"Meta","cotas":587},"9024":{"campaign":"Google_PerformanceMax_AutoSegment_30x4_Auto_Mundial","plataforma":"Google","cotas":403},"9026":{"campaign":"Whatsapp_RMKT_30X4_Auto_Mundial","plataforma":"Own Media","cotas":24},"9027":{"campaign":"Emblue_Email_RMKT_30x4_Auto_Mundial","plataforma":"Own Media","cotas":1},"9031":{"campaign":"Meta_Conversiones_AutoOptiCheckout_30X4_Auto_Mundial","plataforma":"Meta","cotas":82},"9032":{"campaign":"Meta_Conversiones_AutoABTest_30X4_Auto_Mundial","plataforma":"Meta","cotas":36},"9033":{"campaign":"Meta_Conversiones_AutoAO_30X4_Auto_Mundial","plataforma":"Meta","cotas":112},"9037":{"campaign":"Meta_Conversiones_AutoAO_0X0_Auto_NuevaTarifaSinDescuento","plataforma":"Meta","cotas":2},"9041":{"campaign":"Whatsapp_RMKT_0X0_Auto_NuevaTarifaSinDescuento","plataforma":"Own Media","cotas":23},"9042":{"campaign":"Google_Search_AutoSegmentBA_0x0_Auto_NuevaTarifaSinDescuento","plataforma":"Google","cotas":395},"9050":{"campaign":"GPAT_25x12_rmk_emblue","plataforma":"Own Media","cotas":2},"9051":{"campaign":"strix_50x3_rmk_emblue","plataforma":"Own Media","cotas":4},"9052":{"campaign":"strix_50x3_rmk_wpp","plataforma":"Own Media","cotas":14},"9053":{"campaign":"GPAT_25x12_rmk_wpp","plataforma":"Own Media","cotas":1}},"platform_codes":{"Search - Auto - Segment - BA (simplificada)":["8758","8788"],"Search - Auto - Segment - BA (test a/b)":["8934"],"Own Media":["8784","8785","8798","8803","8923","8924","8938","8942","8963","8967","8986","9005","9010","9011","9015","9016","9026","9027","9041","9050","9051","9052","9053"],"Orgánico":["8508","8778","8873","8885","8886"],"Meta":["8786","9021","9031","9032","9033","9037"],"Search - Auto - Retention":["8768","8769"],"Search - Auto - Segment - INT":["8761"],"Conversiones - Auto - AO":["8773","8936","8945","8962","8974","8975","8996","9001","9003","9006","9014"],"MaxPerformance - Auto - Segment":["8772","8965","9017"],"Google":["8941","9024","9025","9042"],"DemandGen - Auto - Similares":["8770","8790","8966","9018"],"DV":["8807"],"Conversiones - Auto - AO - (A/B test)":["8903","8953","8959","8961","9007","9013"],"Own media":["8734","8741","8751","8752","8753","8964"],"Sin plataforma":[],"Conversiones - Auto - AO (checkout)":["8756","8809","8952","8960","9009","9012"],"Uber":[],"Alianza":["8805","8887","8929","8939","9023"],"Otros":[]},"by_platform":{"Search - Auto - Segment - BA (simplificada)":1323,"Search - Auto - Segment - BA (test a/b)":270,"Own Media":389,"Orgánico":1369,"Meta":827,"Search - Auto - Retention":615,"Search - Auto - Segment - INT":927,"Conversiones - Auto - AO":487,"MaxPerformance - Auto - Segment":374,"Google":798,"DemandGen - Auto - Similares":20,"DV":1,"Conversiones - Auto - AO - (A/B test)":15,"Own media":92,"Sin plataforma":11,"Conversiones - Auto - AO (checkout)":86},"daily":{"2026-01-01":257,"2026-01-02":554,"2026-01-03":309,"2026-01-04":342,"2026-01-05":465,"2026-01-06":549,"2026-01-07":484,"2026-01-08":410,"2026-01-09":435,"2026-01-10":392,"2026-01-11":293,"2026-01-12":474,"2026-01-13":497,"2026-01-14":479,"2026-01-15":604,"2026-01-16":447,"2026-01-17":373,"2026-01-18":308,"2026-01-19":500,"2026-01-20":594,"2026-01-21":512,"2026-01-22":565,"2026-01-23":527,"2026-01-24":378,"2026-01-25":345,"2026-01-26":531,"2026-01-27":470,"2026-01-28":453,"2026-01-29":501,"2026-01-30":505,"2026-01-31":409,"2026-02-01":351,"2026-02-02":448,"2026-02-03":429,"2026-02-04":421,"2026-02-05":436,"2026-02-06":501,"2026-02-07":341,"2026-02-08":332,"2026-02-09":447,"2026-02-10":417,"2026-02-11":475,"2026-02-12":495,"2026-02-13":426,"2026-02-14":316,"2026-02-15":282,"2026-02-16":272,"2026-02-17":318,"2026-02-18":527,"2026-02-19":483,"2026-02-20":466,"2026-02-21":393,"2026-02-22":386,"2026-02-23":554,"2026-02-24":503,"2026-02-25":472,"2026-02-26":261,"2026-02-27":610,"2026-02-28":391,"2026-03-01":432,"2026-03-02":513,"2026-03-03":602,"2026-03-04":608,"2026-03-05":453,"2026-03-06":517,"2026-03-07":387,"2026-03-08":343,"2026-03-09":633,"2026-03-10":468,"2026-03-11":456,"2026-03-12":640,"2026-03-13":641,"2026-03-14":376,"2026-03-15":371,"2026-03-16":485,"2026-03-17":527,"2026-03-18":511,"2026-03-19":472,"2026-03-20":564,"2026-03-21":320,"2026-03-22":310,"2026-03-23":341,"2026-03-24":341,"2026-03-25":488,"2026-03-26":432,"2026-03-27":415,"2026-03-28":319,"2026-03-29":300,"2026-03-30":429,"2026-03-31":421,"2026-04-01":363,"2026-04-02":383,"2026-04-03":365,"2026-04-04":299,"2026-04-05":303,"2026-04-06":459,"2026-04-07":438,"2026-04-08":445,"2026-04-09":467,"2026-04-10":449,"2026-04-11":372,"2026-04-12":373,"2026-04-13":485,"2026-04-14":404,"2026-04-15":481,"2026-04-16":420,"2026-04-17":426,"2026-04-18":363,"2026-04-19":309}},"solas":{"total":759,"ayer":7,"by_platform":{"Search - Auto - Retention":71,"Conversiones - Auto - AO":6,"Orgánico":70,"Sin plataforma":209,"Own Media":107,"Otros":140,"Own media":28,"Google":25,"Search - Auto - Segment - BA (simplificada)":16,"Search - Auto - Segment - BA (test a/b)":8,"Conversiones - Auto - AO - (A/B test)":3,"DemandGen - Auto - Similares":7,"Uber":4,"Alianza":17,"DV":2,"Conversiones - Auto - AO (checkout)":9,"MaxPerformance - Auto - Segment":9,"Search - Auto - Segment - INT":16,"Meta":12},"daily":{"2026-01-01":4,"2026-01-02":52,"2026-01-03":12,"2026-01-04":7,"2026-01-05":37,"2026-01-06":36,"2026-01-07":31,"2026-01-08":29,"2026-01-09":34,"2026-01-10":17,"2026-01-11":8,"2026-01-12":36,"2026-01-13":38,"2026-01-14":44,"2026-01-15":30,"2026-01-16":37,"2026-01-17":19,"2026-01-18":7,"2026-01-19":37,"2026-01-20":34,"2026-01-21":42,"2026-01-22":37,"2026-01-23":50,"2026-01-24":16,"2026-01-25":6,"2026-01-26":37,"2026-01-27":45,"2026-01-28":37,"2026-01-29":35,"2026-01-30":50,"2026-01-31":24,"2026-02-01":8,"2026-02-02":58,"2026-02-03":43,"2026-02-04":37,"2026-02-05":34,"2026-02-06":37,"2026-02-07":16,"2026-02-08":5,"2026-02-09":28,"2026-02-10":29,"2026-02-11":44,"2026-02-12":36,"2026-02-13":43,"2026-02-14":12,"2026-02-15":1,"2026-02-16":12,"2026-02-17":18,"2026-02-18":38,"2026-02-19":22,"2026-02-20":39,"2026-02-21":13,"2026-02-22":4,"2026-02-23":37,"2026-02-24":21,"2026-02-25":21,"2026-02-26":16,"2026-02-27":35,"2026-02-28":6,"2026-03-01":16,"2026-03-02":69,"2026-03-03":58,"2026-03-04":67,"2026-03-05":43,"2026-03-06":57,"2026-03-07":23,"2026-03-08":1,"2026-03-09":75,"2026-03-10":54,"2026-03-11":67,"2026-03-12":57,"2026-03-13":69,"2026-03-14":19,"2026-03-15":8,"2026-03-16":64,"2026-03-17":55,"2026-03-18":72,"2026-03-19":55,"2026-03-20":71,"2026-03-21":22,"2026-03-22":6,"2026-03-23":29,"2026-03-24":12,"2026-03-25":52,"2026-03-26":58,"2026-03-27":56,"2026-03-28":10,"2026-03-29":11,"2026-03-30":75,"2026-03-31":52,"2026-04-01":66,"2026-04-02":34,"2026-04-03":17,"2026-04-04":19,"2026-04-05":8,"2026-04-06":57,"2026-04-07":58,"2026-04-08":59,"2026-04-09":60,"2026-04-10":57,"2026-04-11":18,"2026-04-12":5,"2026-04-13":70,"2026-04-14":43,"2026-04-15":57,"2026-04-16":54,"2026-04-17":50,"2026-04-18":20,"2026-04-19":7}}}</script>
+
+<script>
+const DATA = JSON.parse(document.getElementById('dashboard-data').textContent);
+const fmtARS  = (n) => n == null || isNaN(n) ? '—' : '$' + Math.round(n).toLocaleString('es-AR');
+const fmtInt  = (n) => n == null ? '—' : Math.round(n).toLocaleString('es-AR');
+const fmtPct  = (n) => n == null || isNaN(n) ? '—' : (n * 100).toFixed(1) + '%';
+const fmtARSk = (n) => { if (n == null || isNaN(n)) return '—'; if (n >= 1e6) return '$' + (n/1e6).toFixed(1) + 'M'; if (n >= 1e3) return '$' + (n/1e3).toFixed(0) + 'K'; return '$' + Math.round(n); };
+
+const COLOR = { blue:'#0033A0', blueLight:'#4D7CC7', blueSoft:'#7FA5E5', orange:'#FA6400', orangeLight:'#FB8333', orangeSoft:'#FDA866', gray:'#808285', dark:'#2B2B2B', good:'#10b981', bad:'#ef4444' };
+const PALETTE = [COLOR.blue, COLOR.orange, COLOR.blueLight, COLOR.orangeLight, COLOR.blueSoft, COLOR.orangeSoft, '#A84308', '#002870', '#FEE0CC', COLOR.gray, '#A0A0A0', '#CCCCCC'];
+const MONTH_NAMES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+
+const MAPPING_G = {"Search BA (simplificada)":"Search BA simp","Search INT":"Search INT","MaxPerformance":"MaxPerformance","Search BA (test a/b)":"Search BA test","Search Retention":"Search Retention","DemandGen Similares":"Google","DemandGen Remarketing":"Google","Search Movilidad":"Movilidad"};
+const MAPPING_M = {"Conv Auto AO":"Conv AO","Conv Auto AO (A/B test)":"Meta","Conv Auto AO (checkout)":"Meta"};
+
+let charts = {};
+
+// ─── Filtrado por rango ───────────────────────────────────────────────────────
+function filterByDateRange(data, from, to) {
+  const inRange = (d) => (!from || d >= from) && (!to || d <= to);
+  const daily_cotas = Object.fromEntries(Object.entries(data.cotas.daily || {}).filter(([d]) => inRange(d)));
+  const daily_solas = Object.fromEntries(Object.entries(data.solas.daily || {}).filter(([d]) => inRange(d)));
+  const cotasTotal = Object.values(daily_cotas).reduce((a,b)=>a+b,0);
+  const solasTotal = Object.values(daily_solas).reduce((a,b)=>a+b,0);
+  const dataFrom = data.date_range?.from || '';
+  const dataTo   = data.date_range?.to   || '';
+  const inDataRange = (d) => inRange(d) && (!dataFrom || d >= dataFrom) && (!dataTo || d <= dataTo);
+  const cotasCamp = Object.entries(data.cotas.daily || {}).filter(([d]) => inDataRange(d)).reduce((s,[,v])=>s+v,0);
+  const ratio  = data.cotas.total ? Math.min(1, cotasCamp / data.cotas.total) : 1;
+  const ratioS = data.solas.total ? Math.min(1, solasTotal / data.solas.total) : 1;
+  const scale = (obj, r) => Object.fromEntries(Object.entries(obj).map(([k,v])=>[k, Math.round(v*r)]));
+  return {
+    ...data,
+    cotas: {
+      total: cotasTotal,
+      by_platform: scale(data.cotas.by_platform, ratio),
+      platform_codes: data.cotas.platform_codes || {},
+      by_campaign_code: Object.fromEntries(Object.entries(data.cotas.by_campaign_code || {}).map(([k,v]) => [k, {...v, cotas: Math.round(v.cotas * ratio)}])),
+      daily: daily_cotas
+    },
+    solas: { total: solasTotal, by_platform: scale(data.solas.by_platform, ratioS), by_campaign: scale(data.solas.by_campaign || {}, ratioS), daily: daily_solas },
+    google_ads: data.google_ads.map(c => ({...c, spend: Math.round(c.spend*ratio), conversions: +(c.conversions*ratio).toFixed(2)})),
+    meta_ads:   data.meta_ads.map(c => ({...c, spend: Math.round(c.spend*ratio), results: Math.round(c.results*ratio)}))
+  };
+}
+
+// ─── Spend por plataforma ────────────────────────────────────────────────────
+function spendByPlatform(d) {
+  const sp = {};
+  for (const c of d.google_ads) {
+    const plat = MAPPING_G[c.campaign] || c.campaign;
+    sp[plat] = (sp[plat] || 0) + c.spend;
+  }
+  for (const c of d.meta_ads) {
+    const plat = MAPPING_M[c.campaign] || c.campaign;
+    sp[plat] = (sp[plat] || 0) + c.spend;
+  }
+  return sp;
+}
+
+// ─── KPIs ─────────────────────────────────────────────────────────────────────
+function renderKPIs(d) {
+  const gSpend = d.google_ads.reduce((s,c)=>s+c.spend, 0);
+  const mSpend = d.meta_ads.reduce((s,c)=>s+c.spend, 0);
+  const total = gSpend + mSpend;
+  const cotas = d.cotas.total;
+  const solas = d.solas.total;
+  const conv  = cotas ? solas / cotas : 0;
+  const cpl   = solas ? total / solas : null;
+  const cpa   = cotas ? total / cotas : null;
+  const cards = [
+    { label: 'Cotas Totales',  value: fmtInt(cotas),       cls: 'blue',   sub: 'Solicitudes de cotización' },
+    { label: 'Solas Ecommerce',value: fmtInt(solas),       cls: 'orange', sub: 'Políticas iniciadas online' },
+    { label: 'Conv% Cota→Sola',value: fmtPct(conv),        cls: 'green',  sub: 'Tasa de conversión' },
+    { label: 'Inversión Total', value: fmtARSk(total),     cls: 'mid',    sub: `G: ${fmtARSk(gSpend)} · M: ${fmtARSk(mSpend)}` },
+    { label: 'CPL ($/Sola)',   value: fmtARS(cpl),         cls: 'orange', sub: 'Costo por sola ecommerce' },
+    { label: 'CPA ($/Cota)',   value: fmtARS(cpa),         cls: 'blue',   sub: 'Costo por cota' }
+  ];
+  document.getElementById('kpi-grid').innerHTML = cards.map(c => `
+    <div class="kpi-card ${c.cls}">
+      <div class="label">${c.label}</div>
+      <div class="value">${c.value}</div>
+      <div class="sub">${c.sub}</div>
+    </div>`).join('');
+}
+
+// ─── Embudo ───────────────────────────────────────────────────────────────────
+function renderFunnel(d) {
+  const cotas = d.cotas.total || 0;
+  const solas = d.solas.total || 0;
+  const conv  = cotas ? (solas / cotas) : 0;
+  const gSpend = d.google_ads.reduce((s,c)=>s+c.spend,0);
+  const mSpend = d.meta_ads.reduce((s,c)=>s+c.spend,0);
+  const total  = gSpend + mSpend;
+  const NO_PAID = new Set(['Orgánico','Own Media','Google (sin atrib)']);
+  const paidCotas = Object.entries(d.cotas.by_platform).filter(([p]) => !NO_PAID.has(p)).reduce((s,[,v])=>s+v,0);
+  const orgCotas  = cotas - paidCotas;
+  const paidSolas = Object.entries(d.solas.by_platform).filter(([p]) => !NO_PAID.has(p)).reduce((s,[,v])=>s+v,0);
+  const orgSolas  = solas - paidSolas;
+
+  // Funnel visual
+  const steps = [
+    { label: 'Inversión (Google + Meta)', val: fmtARSk(total), pct: 1, color: COLOR.blueLight, subLabel: '' },
+    { label: 'Cotas generadas',           val: fmtInt(cotas),  pct: 1, color: COLOR.blue,      subLabel: '' },
+    { label: 'Solas Ecommerce',           val: fmtInt(solas),  pct: cotas ? solas/cotas : 0, color: COLOR.orange, subLabel: fmtPct(conv) + ' de cotas' }
+  ];
+  let html = '<div class="funnel-wrap">';
+  steps.forEach((s, i) => {
+    const w = Math.max(30, Math.round(s.pct * 100));
+    html += `
+      <div class="funnel-step">
+        <div class="funnel-bar-wrap" style="width:100%">
+          <div class="funnel-bar" style="width:${w}%; background:${s.color}; min-width:120px">
+            ${s.val}
+          </div>
+          <div class="funnel-label">${s.label}${s.subLabel ? ' · ' + s.subLabel : ''}</div>
+        </div>
+      </div>`;
+    if (i < steps.length - 1) html += `<div class="funnel-arrow">▼</div>`;
+  });
+  html += '</div>';
+  document.getElementById('funnel-visual').innerHTML = html;
+
+  // Tabla detalle
+  const rows = [
+    ['Cotas Paid', fmtInt(paidCotas), fmtPct(cotas ? paidCotas/cotas : null), ''],
+    ['Cotas Orgánico/Propio', fmtInt(orgCotas), fmtPct(cotas ? orgCotas/cotas : null), ''],
+    ['Solas Paid', fmtInt(paidSolas), fmtPct(solas ? paidSolas/solas : null), fmtPct(paidCotas ? paidSolas/paidCotas : null)],
+    ['Solas Orgánico/Propio', fmtInt(orgSolas), fmtPct(solas ? orgSolas/solas : null), fmtPct(orgCotas ? orgSolas/orgCotas : null)],
+  ];
+  const t = document.getElementById('funnel-table');
+  t.querySelector('thead').innerHTML = `<tr><th>Segmento</th><th class="num">Volumen</th><th class="num">Share</th><th class="num">Conv%</th></tr>`;
+  t.querySelector('tbody').innerHTML = rows.map(([label, vol, share, cv]) => `
+    <tr><td>${label}</td><td class="num">${vol}</td><td class="num">${share}</td><td class="num">${cv}</td></tr>`).join('');
+
+  document.getElementById('funnel-period').textContent = `${fmtInt(cotas)} cotas → ${fmtInt(solas)} solas`;
+}
+
+// ─── Tabla plataforma ─────────────────────────────────────────────────────────
+function renderPlatformTable(d) {
+  const sp = spendByPlatform(d);
+  const bcc = d.cotas.by_campaign_code || {};
+
+  // Construir filas: una por código de campaña
+  // Solas e inversión se atribuyen proporcionalmente dentro de cada plataforma
+  const cotasByPlat = {};
+  for (const [cod, info] of Object.entries(bcc)) {
+    const p = info.plataforma;
+    cotasByPlat[p] = (cotasByPlat[p] || 0) + info.cotas;
+  }
+
+  const rows = Object.entries(bcc).map(([cod, info]) => {
+    const platTotal = cotasByPlat[info.plataforma] || 1;
+    const ratio = info.cotas / platTotal;
+    const platSolas  = d.solas.by_platform[info.plataforma] || 0;
+    const platSpend  = sp[info.plataforma] || 0;
+    const solas = Math.round(platSolas * ratio);
+    const spend = Math.round(platSpend * ratio);
+    return {
+      cod, campaign: info.campaign, plat: info.plataforma,
+      cotas: info.cotas, solas, spend,
+      conv:  info.cotas ? solas / info.cotas : null,
+      cpa:   info.cotas && spend ? spend / info.cotas : null,
+      cpl:   solas && spend ? spend / solas : null
+    };
+  }).sort((a,b) => b.cotas - a.cotas);
+
+  // Plataformas sin código (solas/spend que no tienen código asignado)
+  const platsSinCod = new Set([...Object.keys(d.solas.by_platform), ...Object.keys(sp)])
+    .difference ? [...new Set([...Object.keys(d.solas.by_platform), ...Object.keys(sp)])]
+      .filter(p => !Object.values(bcc).some(e => e.plataforma === p)) : [];
+
+  const totalCotas = rows.reduce((s,r)=>s+r.cotas, 0);
+  const totalSolas = rows.reduce((s,r)=>s+r.solas, 0);
+  const totalSpend = rows.reduce((s,r)=>s+r.spend, 0);
+
+  const head = `<tr>
+    <th>#</th>
+    <th>Código</th>
+    <th>Nombre Campaña</th>
+    <th>Plataforma</th>
+    <th class="num">Cotas</th><th class="num">%</th>
+    <th class="num">Solas*</th><th class="num">Conv%</th>
+    <th class="num">Inversión*</th>
+    <th class="num">$/Cota</th><th class="num">$/Sola</th>
+  </tr>`;
+
+  const body = rows.map((r, i) => {
+    const convCls = r.conv != null ? (r.conv > 0.12 ? 'good' : r.conv < 0.05 ? 'warning' : '') : '';
+    const hasPaid = r.spend > 0;
+    return `<tr>
+      <td>${i+1}</td>
+      <td style="font-weight:700; color:#4D7CC7; white-space:nowrap">${r.cod}</td>
+      <td style="font-size:12px; color:#6A6A6A; max-width:260px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap" title="${r.campaign}">${r.campaign}</td>
+      <td style="font-size:12px">${r.plat}</td>
+      <td class="num blue">${fmtInt(r.cotas)}</td>
+      <td class="num">${fmtPct(totalCotas ? r.cotas/totalCotas : null)}</td>
+      <td class="num orange">${fmtInt(r.solas)}</td>
+      <td class="num ${convCls}">${fmtPct(r.conv)}</td>
+      <td class="num">${hasPaid ? fmtARSk(r.spend) : '—'}</td>
+      <td class="num">${hasPaid && r.cotas ? fmtARS(r.cpa) : '—'}</td>
+      <td class="num">${hasPaid && r.solas ? fmtARS(r.cpl) : '—'}</td>
+    </tr>`;
+  }).join('');
+
+  const footer = `<tr>
+    <td colspan="4" class="total-row">TOTAL (${rows.length} códigos)</td>
+    <td class="num total-row blue">${fmtInt(totalCotas)}</td>
+    <td class="num total-row">100%</td>
+    <td class="num total-row orange">${fmtInt(totalSolas)}</td>
+    <td class="num total-row">${fmtPct(totalCotas ? totalSolas/totalCotas : null)}</td>
+    <td class="num total-row">${fmtARSk(totalSpend)}</td>
+    <td class="num total-row">${totalCotas && totalSpend ? fmtARS(totalSpend/totalCotas) : '—'}</td>
+    <td class="num total-row">${totalSolas && totalSpend ? fmtARS(totalSpend/totalSolas) : '—'}</td>
+  </tr>`;
+
+  const note = `<tr><td colspan="11" style="font-size:11px; color:#808285; padding:8px 12px; border:none">* Solas e Inversión atribuidas proporcionalmente por cotas dentro de cada plataforma.</td></tr>`;
+
+  const t = document.getElementById('platform-table');
+  t.querySelector('thead').innerHTML = head;
+  t.querySelector('tbody').innerHTML = body + footer + note;
+}
+
+// ─── Charts CPL/CPA ──────────────────────────────────────────────────────────
+function renderCplCpaCharts(d) {
+  charts.cpl?.destroy?.();
+  charts.cpa?.destroy?.();
+  const sp = spendByPlatform(d);
+  const allPlats = Object.keys(d.cotas.by_platform);
+  const paid = allPlats.filter(p => sp[p] > 0).sort((a,b) => (sp[b]||0) - (sp[a]||0));
+
+  if (!paid.length) return;
+
+  const cplData = paid.map(p => { const s = sp[p]||0; const solas = d.solas.by_platform[p]||0; return solas ? Math.round(s/solas) : null; });
+  const cpaData = paid.map(p => { const s = sp[p]||0; const cotas = d.cotas.by_platform[p]||0; return cotas ? Math.round(s/cotas) : null; });
+
+  const baseOpts = {
+    indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: { x: { grid: { color: '#e5e9f0' }, ticks: { callback: v => fmtARSk(v) } }, y: { grid: { display: false } } }
+  };
+
+  charts.cpl = new Chart(document.getElementById('chart-cpl'), {
+    type: 'bar',
+    data: { labels: paid, datasets: [{ data: cplData, backgroundColor: COLOR.orange, borderRadius: 4 }] },
+    options: { ...baseOpts }
+  });
+
+  charts.cpa = new Chart(document.getElementById('chart-cpa'), {
+    type: 'bar',
+    data: { labels: paid, datasets: [{ data: cpaData, backgroundColor: COLOR.blue, borderRadius: 4 }] },
+    options: { ...baseOpts }
+  });
+}
+
+// ─── Evolución mensual ────────────────────────────────────────────────────────
+function aggByMonth(daily) {
+  const out = {};
+  for (const [d, v] of Object.entries(daily)) { const m = d.slice(0,7); out[m] = (out[m]||0) + v; }
+  return out;
+}
+function monthLabel(m) { const [y,mm] = m.split('-'); return `${MONTH_NAMES[+mm-1]} ${y.slice(2)}`; }
+
+function renderMonthlyCharts(d) {
+  ['cotasM','solasM','convM'].forEach(k => charts[k]?.destroy?.());
+  const cm = aggByMonth(d.cotas.daily);
+  const sm = aggByMonth(d.solas.daily);
+  const months = [...new Set([...Object.keys(cm),...Object.keys(sm)])].sort();
+  const labels = months.map(monthLabel);
+  const convData = months.map(m => cm[m] ? (sm[m]||0) / cm[m] * 100 : 0);
+
+  const baseOpts = { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false } }, y: { grid: { color: '#e5e9f0' } } } };
+
+  charts.cotasM = new Chart(document.getElementById('chart-cotas-month'), {
+    type: 'bar', data: { labels, datasets: [{ data: months.map(m => cm[m]||0), backgroundColor: COLOR.blue, borderRadius: 6 }] },
+    options: baseOpts
+  });
+  charts.solasM = new Chart(document.getElementById('chart-solas-month'), {
+    type: 'bar', data: { labels, datasets: [{ data: months.map(m => sm[m]||0), backgroundColor: COLOR.orange, borderRadius: 6 }] },
+    options: baseOpts
+  });
+  charts.convM = new Chart(document.getElementById('chart-conv-month'), {
+    type: 'line', data: { labels, datasets: [{ data: convData, borderColor: COLOR.good, backgroundColor: 'rgba(16,185,129,.1)', tension: .3, fill: true, pointRadius: 4, borderWidth: 2 }] },
+    options: { ...baseOpts, scales: { ...baseOpts.scales, y: { ...baseOpts.scales.y, ticks: { callback: v => v.toFixed(1)+'%' } } } }
+  });
+}
+
+function renderMonthlyTable(d) {
+  const cm = aggByMonth(d.cotas.daily);
+  const sm = aggByMonth(d.solas.daily);
+  const months = [...new Set([...Object.keys(cm),...Object.keys(sm)])].sort().reverse();
+  const pct = (a, b) => b ? ((a-b)/b*100) : null;
+  const head = `<tr><th>Mes</th><th class="num">Cotas</th><th class="num">Δ MoM</th><th class="num">Solas</th><th class="num">Δ MoM</th><th class="num">Conv%</th><th class="num">Δ Conv MoM</th></tr>`;
+  const body = months.map((m, i) => {
+    const prev = months[i+1];
+    const c = cm[m]||0, s = sm[m]||0;
+    const cp = prev ? cm[prev]||0 : null;
+    const sp2 = prev ? sm[prev]||0 : null;
+    const dc = prev ? pct(c, cp) : null;
+    const ds = prev ? pct(s, sp2) : null;
+    const conv = c ? s/c : null;
+    const convP = (cp && sp2) ? sp2/cp : null;
+    const dConv = (conv != null && convP != null) ? pct(conv, convP) : null;
+    const arrow = (v) => v == null ? '—' : (v > 0 ? `<span style="color:#10b981">▲ +${v.toFixed(1)}%</span>` : v < 0 ? `<span style="color:#ef4444">▼ ${v.toFixed(1)}%</span>` : `<span style="color:#808285">▬ 0%</span>`);
+    return `<tr>
+      <td style="font-weight:600">${monthLabel(m)}</td>
+      <td class="num blue">${fmtInt(c)}</td>
+      <td class="num">${arrow(dc)}</td>
+      <td class="num orange">${fmtInt(s)}</td>
+      <td class="num">${arrow(ds)}</td>
+      <td class="num">${fmtPct(conv)}</td>
+      <td class="num">${arrow(dConv)}</td>
+    </tr>`;
+  }).join('');
+  const t = document.getElementById('monthly-table');
+  t.querySelector('thead').innerHTML = head;
+  t.querySelector('tbody').innerHTML = body;
+}
+
+function renderDailyChart(d) {
+  charts.daily?.destroy?.();
+  const allDays = [...new Set([...Object.keys(d.cotas.daily),...Object.keys(d.solas.daily)])].sort();
+  const dayLabel = dt => { const [,m,dd] = dt.split('-'); return `${parseInt(dd)} ${MONTH_NAMES[+m-1]}`; };
+
+  // Plugin inline: sombrea las columnas de Vie (5), Sáb (6) y Dom (0)
+  const weekendBgPlugin = {
+    id: 'weekendBg',
+    beforeDraw(chart) {
+      const dates = chart.options.plugins?.weekendBg?.dates;
+      if (!dates) return;
+      const { ctx, chartArea, scales: { x } } = chart;
+      if (!chartArea || !x) return;
+      const n = dates.length;
+      ctx.save();
+      ctx.fillStyle = 'rgba(250,100,0,0.08)';
+      for (let i = 0; i < n; i++) {
+        const day = new Date(dates[i] + 'T12:00:00').getDay();
+        if (day !== 5 && day !== 6 && day !== 0) continue;
+        const xC    = x.getPixelForValue(i);
+        const prevX = i > 0     ? x.getPixelForValue(i - 1) : null;
+        const nextX = i < n - 1 ? x.getPixelForValue(i + 1) : null;
+        const halfL = prevX != null ? (xC - prevX) / 2 : (nextX != null ? (nextX - xC) / 2 : 4);
+        const halfR = nextX != null ? (nextX - xC) / 2 : halfL;
+        ctx.fillRect(xC - halfL, chartArea.top, halfL + halfR, chartArea.bottom - chartArea.top);
+      }
+      ctx.restore();
+    }
+  };
+
+  charts.daily = new Chart(document.getElementById('chart-daily'), {
+    type: 'line',
+    data: { labels: allDays.map(dayLabel), datasets: [
+      { label: 'Cotas', data: allDays.map(k => d.cotas.daily[k] ?? null), borderColor: COLOR.blue, backgroundColor: 'rgba(0,51,160,.08)', tension: .3, fill: true, yAxisID: 'y', pointRadius: 1.5 },
+      { label: 'Solas', data: allDays.map(k => d.solas.daily[k] ?? null), borderColor: COLOR.orange, backgroundColor: 'rgba(250,100,0,.08)', tension: .3, fill: true, yAxisID: 'y1', pointRadius: 1.5, spanGaps: false }
+    ]},
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      scales: { y: { position:'left', grid:{color:'#e5e9f0'}, ticks:{color:COLOR.blue} }, y1: { position:'right', grid:{display:false}, ticks:{color:COLOR.orange} }, x: { grid:{color:'#e5e9f0'} } },
+      plugins: { legend: { position:'bottom' }, weekendBg: { dates: allDays } }
+    },
+    plugins: [weekendBgPlugin]
+  });
+}
+
+// ─── Semanas ──────────────────────────────────────────────────────────────────
+function getMondayKey(dateStr) {
+  const d = new Date(dateStr + 'T12:00:00');
+  const day = d.getDay();
+  const diff = (day === 0 ? -6 : 1 - day);
+  d.setDate(d.getDate() + diff);
+  return d.toISOString().slice(0, 10);
+}
+
+function aggByWeek(daily) {
+  const out = {};
+  for (const [d, v] of Object.entries(daily)) {
+    const wk = getMondayKey(d);
+    out[wk] = (out[wk] || 0) + v;
+  }
+  return out;
+}
+
+function weekLabel(mondayIso) {
+  const d = new Date(mondayIso + 'T12:00:00');
+  const sun = new Date(d); sun.setDate(sun.getDate() + 6);
+  const fmt = dt => `${dt.getDate()} ${MONTH_NAMES[dt.getMonth()]}`;
+  return `${fmt(d)}–${fmt(sun)}`;
+}
+
+// Devuelve los últimos n rangos de lunes-domingo anteriores a refDateStr
+function getLastNWeekRanges(n, refDateStr) {
+  const result = [];
+  const ref = new Date(refDateStr + 'T12:00:00');
+  const day = ref.getDay();
+  const monday = new Date(ref);
+  monday.setDate(ref.getDate() - (day === 0 ? 6 : day - 1));
+  const iso = d => d.toISOString().slice(0,10);
+  for (let i = n - 1; i >= 0; i--) {
+    const m = new Date(monday); m.setDate(monday.getDate() - i * 7);
+    const s = new Date(m);     s.setDate(m.getDate() + 6);
+    result.push({ from: iso(m), to: iso(s) });
+  }
+  return result;
+}
+
+function populateWeekFilters(ranges) {
+  for (let i = 0; i < Math.min(ranges.length, 4); i++) {
+    const f = document.getElementById(`wk${i+1}-from`);
+    const t = document.getElementById(`wk${i+1}-to`);
+    if (f) f.value = ranges[i].from;
+    if (t) t.value = ranges[i].to;
+  }
+}
+
+function readWeekFilters() {
+  const ranges = [];
+  for (let i = 1; i <= 4; i++) {
+    const from = document.getElementById(`wk${i}-from`)?.value;
+    const to   = document.getElementById(`wk${i}-to`)?.value;
+    if (from && to) ranges.push({ from, to });
+  }
+  return ranges;
+}
+
+function renderWeekly(d, customRanges) {
+  ['wCotas','wSolas'].forEach(k => charts[k]?.destroy?.());
+
+  // Construir weekData: array de {key, label, cotas, solas}
+  let weekData = [];
+  const fmtD = s => { const [,m,dd] = s.split('-'); return `${parseInt(dd)} ${MONTH_NAMES[+m-1]}`; };
+
+  if (customRanges && customRanges.length > 0) {
+    for (const r of customRanges) {
+      if (!r.from || !r.to) continue;
+      const cotas = Object.entries(d.cotas.daily).filter(([day]) => day >= r.from && day <= r.to).reduce((s,[,v])=>s+v, 0);
+      const solas = Object.entries(d.solas.daily).filter(([day]) => day >= r.from && day <= r.to).reduce((s,[,v])=>s+v, 0);
+      weekData.push({ key: r.from, label: `${fmtD(r.from)}–${fmtD(r.to)}`, cotas, solas });
+    }
+  } else {
+    const cwk = aggByWeek(d.cotas.daily);
+    const swk = aggByWeek(d.solas.daily);
+    const weeks = [...new Set([...Object.keys(cwk),...Object.keys(swk)])].sort();
+    weekData = weeks.map(wk => ({ key: wk, label: weekLabel(wk), cotas: cwk[wk]||0, solas: swk[wk]||0 }));
+  }
+
+  if (!weekData.length) return;
+  const labels = weekData.map(w => w.label);
+
+  // Colores para top campañas (stacked bars de cotas)
+  const bcc = d.cotas.by_campaign_code || {};
+  const totalCotasPeriod = Object.values(bcc).reduce((s,e)=>s+e.cotas,0) || 1;
+  const topCamp = Object.entries(bcc).filter(([,e])=>e.cotas>0)
+    .sort((a,b)=>b[1].cotas-a[1].cotas).slice(0,8);
+
+  // Datasets apilados por campaña (proporcional)
+  const campDatasets = topCamp.map(([cod, info], i) => ({
+    label: cod + ' · ' + info.campaign.slice(0,25),
+    data: weekData.map(w => Math.round(w.cotas * info.cotas / totalCotasPeriod)),
+    backgroundColor: PALETTE[i % PALETTE.length],
+    stack: 'cotas'
+  }));
+  const topTotal = topCamp.reduce((s,[,e])=>s+e.cotas,0);
+  const otrosRatio = (totalCotasPeriod - topTotal) / totalCotasPeriod;
+  if (otrosRatio > 0.01) campDatasets.push({ label:'Otros', data: weekData.map(w=>Math.round(w.cotas*otrosRatio)), backgroundColor:'#CCCCCC', stack:'cotas' });
+
+  const baseOpts = { responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom',labels:{boxWidth:10,font:{size:10}}}}, scales:{ x:{stacked:true,grid:{display:false}}, y:{stacked:true,grid:{color:'#e5e9f0'}} } };
+
+  charts.wCotas = new Chart(document.getElementById('chart-weekly-cotas'), {
+    type:'bar', data:{ labels, datasets: campDatasets }, options: baseOpts
+  });
+  charts.wSolas = new Chart(document.getElementById('chart-weekly-solas'), {
+    type:'bar',
+    data:{ labels, datasets:[{ label:'Solas', data: weekData.map(w=>w.solas), backgroundColor: COLOR.orange, borderRadius:4 }]},
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{x:{grid:{display:false}},y:{grid:{color:'#e5e9f0'}}} }
+  });
+
+  // Tabla semanal
+  const pct = (a,b) => b ? ((a-b)/b*100) : null;
+  const arrow = v => v==null?'—': v>2 ? `<span style="color:#10b981">▲ +${v.toFixed(0)}%</span>` : v<-2 ? `<span style="color:#ef4444">▼ ${v.toFixed(0)}%</span>` : `<span style="color:#808285">≈</span>`;
+
+  const head = `<tr><th>Semana</th><th class="num">Cotas</th><th class="num">Δ</th><th class="num">Solas</th><th class="num">Δ</th><th class="num">Conv%</th><th class="num">Δ Conv</th>
+    ${topCamp.slice(0,5).map(([cod])=>`<th class="num" style="font-size:10px">${cod}</th>`).join('')}</tr>`;
+
+  const body = weekData.map((w, i) => {
+    const c=w.cotas, s=w.solas;
+    const prev = i>0?weekData[i-1]:null;
+    const cp=prev?prev.cotas:null, sp2=prev?prev.solas:null;
+    const conv=c?s/c:null, convP=(cp&&sp2)?sp2/cp:null;
+    const campCells = topCamp.slice(0,5).map(([cod,info])=>`<td class="num" style="font-size:12px">${Math.round((c||0)*info.cotas/totalCotasPeriod)}</td>`).join('');
+    return `<tr>
+      <td style="font-weight:600; white-space:nowrap">${w.label}</td>
+      <td class="num blue">${fmtInt(c)}</td><td class="num">${arrow(pct(c,cp))}</td>
+      <td class="num orange">${fmtInt(s)}</td><td class="num">${arrow(pct(s,sp2))}</td>
+      <td class="num">${fmtPct(conv)}</td><td class="num">${arrow(conv!=null&&convP!=null?pct(conv,convP):null)}</td>
+      ${campCells}
+    </tr>`;
+  }).join('');
+  const t = document.getElementById('weekly-table');
+  t.querySelector('thead').innerHTML = head;
+  t.querySelector('tbody').innerHTML = body;
+}
+
+// ─── Recomendaciones ──────────────────────────────────────────────────────────
+function renderRecommendationsCS(d) {
+  const sp = spendByPlatform(d);
+  const bcc = d.cotas.by_campaign_code || {};
+  if (!Object.keys(bcc).length) {
+    document.getElementById('recs-cs').innerHTML = '<p style="color:#808285">No hay datos suficientes para generar recomendaciones.</p>';
+    return;
+  }
+
+  const cotasByPlat = {};
+  for (const [,info] of Object.entries(bcc)) {
+    cotasByPlat[info.plataforma] = (cotasByPlat[info.plataforma]||0) + info.cotas;
+  }
+
+  const entries = Object.entries(bcc).map(([cod, info]) => {
+    const platTotal = cotasByPlat[info.plataforma]||1;
+    const ratio = info.cotas / platTotal;
+    const solas = Math.round((d.solas.by_platform[info.plataforma]||0) * ratio);
+    const spend = Math.round((sp[info.plataforma]||0) * ratio);
+    const conv = info.cotas ? solas / info.cotas : 0;
+    const cpl = solas && spend ? spend/solas : null;
+    const cpa = info.cotas && spend ? spend/info.cotas : null;
+    return { cod, campaign: info.campaign, plat: info.plataforma, cotas: info.cotas, solas, spend, conv, cpl, cpa };
+  }).filter(e => e.cotas >= 5);
+
+  const avgConv  = entries.reduce((s,e)=>s+e.conv,0) / (entries.length||1);
+  const avgCpl   = entries.filter(e=>e.cpl).map(e=>e.cpl);
+  const medCpl   = avgCpl.length ? avgCpl.sort((a,b)=>a-b)[Math.floor(avgCpl.length/2)] : null;
+
+  const recs = [];
+
+  for (const e of entries) {
+    const convPct = (e.conv*100).toFixed(1);
+    const name = `${e.cod} (${e.campaign.slice(0,30)})`;
+
+    // ✅ Canal eficiente con alta conv% → Escalar
+    if (e.conv >= avgConv * 1.5 && e.cotas >= 20) {
+      recs.push({ tag:'ESCALAR', cls:'scale',
+        title:`${e.cod} — Escalar inversión`,
+        body:`Conv% del ${convPct}% (${(e.conv/avgConv).toFixed(1)}x el promedio). Con ${fmtInt(e.cotas)} cotas y ${fmtInt(e.solas)} solas, es uno de los canales más eficientes. Aumentar presupuesto 20–40%.`,
+        _pri: (e.conv/avgConv)*100 + e.cotas*0.05 });
+    }
+    // ⚠️ Muchas cotas pero conv% bajísima → Mejorar calidad
+    else if (e.cotas >= 100 && e.conv < avgConv * 0.4) {
+      recs.push({ tag:'OPTIMIZAR', cls:'optimize',
+        title:`${e.cod} — Mejorar calidad de cotas`,
+        body:`${fmtInt(e.cotas)} cotas pero solo ${fmtInt(e.solas)} solas (${convPct}% conv). La calidad de los leads puede ser baja. Revisar creativos, segmentación y landing page.`,
+        _pri: e.cotas * 0.05 });
+    }
+    // 🚨 Inversión alta con conv% muy baja → Revisar o pausar
+    if (e.spend > 0 && e.conv < avgConv * 0.3 && e.cotas >= 30) {
+      recs.push({ tag:'REVISAR', cls:'pause',
+        title:`${e.cod} — CPL muy alto, revisar`,
+        body:`Invierte ${fmtARSk(e.spend)} con ${convPct}% conv.${e.cpl ? ` CPL de ${fmtARS(e.cpl)} por sola` : ''}. Revisar creativos o pausar si no mejora en 7 días.`,
+        _pri: (e.spend||0) / 1e6 });
+    }
+    // 💡 Orgánico / own media con buena conv → Potenciar
+    if (!e.spend && e.conv >= avgConv * 1.2 && e.cotas >= 30) {
+      recs.push({ tag:'OPORTUNIDAD', cls:'info',
+        title:`${e.cod} — Canal orgánico eficiente`,
+        body:`${fmtInt(e.cotas)} cotas y ${convPct}% conv sin inversión pagada. Potenciar contenido/SEO/email para este canal puede escalar solas a bajo costo.`,
+        _pri: e.cotas * 0.05 });
+    }
+    // 📉 Volumen muy bajo en canal pagado → Evaluar
+    if (e.spend > 0 && e.cotas < 20 && e.spend > 500000) {
+      recs.push({ tag:'EVALUAR', cls:'pause',
+        title:`${e.cod} — Bajo volumen de cotas`,
+        body:`Solo ${fmtInt(e.cotas)} cotas con ${fmtARSk(e.spend)} invertidos. Evaluar si el targeting es correcto o si hace falta más tiempo de aprendizaje.`,
+        _pri: e.cotas * 0.1 });
+    }
+  }
+
+  // Recomendación global si hay muchos canales con baja conv
+  const lowConvCount = entries.filter(e=>e.conv<0.03&&e.cotas>=50).length;
+  if (lowConvCount >= 3) {
+    recs.unshift({ tag:'ESTRATEGIA', cls:'info',
+      title:'Foco en conversión — Problema sistémico',
+      body:`${lowConvCount} campañas tienen Conv% < 3%. Revisar la experiencia del cotizador (UX, velocidad, campos del formulario) ya que el problema puede ser post-click, no en la captación.`,
+      _pri: lowConvCount * 10 });
+  }
+
+  // Highlight de mejor campaña
+  const best = [...entries].sort((a,b)=>b.solas-a.solas)[0];
+  if (best && best.solas >= 10) {
+    recs.unshift({ tag:'DESTACADO', cls:'scale',
+      title:`${best.cod} — Mejor generador de solas`,
+      body:`Lidera con ${fmtInt(best.solas)} solas en el período${best.spend ? ` (CPL ${fmtARS(best.cpl)})` : ' sin inversión pagada registrada'}. Usarlo como benchmark de creativos y segmentación.`,
+      _pri: best.solas });
+  }
+
+  if (!recs.length) recs.push({ tag:'OK', cls:'info', title:'Sin alertas críticas', body:'Todas las campañas están dentro de rangos normales de conversión para el período seleccionado.', _pri: 0 });
+
+  // Puntaje de prioridad → Top 10
+  const SCORE_MAP = { DESTACADO:1000, ESTRATEGIA:900, ESCALAR:700, REVISAR:600, OPTIMIZAR:500, OPORTUNIDAD:400, EVALUAR:300, OK:200 };
+  const top10 = recs
+    .map(r => ({ ...r, _score: (SCORE_MAP[r.tag]||200) + (r._pri||0) }))
+    .sort((a,b) => b._score - a._score)
+    .slice(0, 10);
+
+  document.getElementById('recs-cs').innerHTML = top10.map(r => `
+    <div class="insight-card ${r.cls}">
+      <div class="tag">${r.tag}</div>
+      <div class="title">${r.title}</div>
+      <div class="body">${r.body}</div>
+    </div>`).join('');
+}
+
+// ─── Fines de semana ─────────────────────────────────────────────────────────
+function getFridayKey(dateStr) {
+  const d = new Date(dateStr + 'T12:00:00');
+  const day = d.getDay(); // 0=Dom, 5=Vie, 6=Sáb
+  if (day === 5) return dateStr;
+  if (day === 6) { const f = new Date(d); f.setDate(d.getDate()-1); return f.toISOString().slice(0,10); }
+  if (day === 0) { const f = new Date(d); f.setDate(d.getDate()-2); return f.toISOString().slice(0,10); }
+  return null;
+}
+
+function weekendLabel(fridayIso) {
+  const fri = new Date(fridayIso + 'T12:00:00');
+  const sun = new Date(fri); sun.setDate(fri.getDate() + 2);
+  const fmt = dt => `${dt.getDate()} ${MONTH_NAMES[dt.getMonth()]}`;
+  return `${fmt(fri)}–${fmt(sun)}`;
+}
+
+function renderWeekends(d) {
+  ['wkendCotas','wkendSolas'].forEach(k => charts[k]?.destroy?.());
+
+  const cwkend = {}, swkend = {};
+  for (const [dt, v] of Object.entries(d.cotas.daily)) { const fk = getFridayKey(dt); if (fk) cwkend[fk] = (cwkend[fk]||0) + v; }
+  for (const [dt, v] of Object.entries(d.solas.daily)) { const fk = getFridayKey(dt); if (fk) swkend[fk] = (swkend[fk]||0) + v; }
+
+  const weekends = [...new Set([...Object.keys(cwkend),...Object.keys(swkend)])].sort();
+  const kpisEl   = document.getElementById('weekend-kpis');
+
+  if (!weekends.length) {
+    kpisEl.innerHTML = '<p style="color:#808285;font-size:13px">No hay datos de fines de semana en el período seleccionado.</p>';
+    ['weekend-table'].forEach(id => { const t = document.getElementById(id); t.querySelector('thead').innerHTML=''; t.querySelector('tbody').innerHTML=''; });
+    return;
+  }
+
+  const totalWkC = weekends.reduce((s,wk)=>s+(cwkend[wk]||0), 0);
+  const totalWkS = weekends.reduce((s,wk)=>s+(swkend[wk]||0), 0);
+  const wkConv   = totalWkC ? totalWkS / totalWkC : 0;
+  const shareC   = d.cotas.total ? totalWkC / d.cotas.total : null;
+  const shareS   = d.solas.total ? totalWkS / d.solas.total : null;
+
+  kpisEl.innerHTML = [
+    { label:'Cotas FdS',       value: fmtInt(totalWkC),  sub: fmtPct(shareC) + ' del período', cls:'blue'   },
+    { label:'Solas FdS',       value: fmtInt(totalWkS),  sub: fmtPct(shareS) + ' del período', cls:'orange' },
+    { label:'Conv% FdS',       value: fmtPct(wkConv),    sub: 'Tasa fin de semana',             cls:'green'  },
+    { label:'Fines de semana', value: weekends.length,   sub: 'En el período',                  cls:'mid'    },
+  ].map(c => `<div class="kpi-card ${c.cls}" style="flex:1; min-width:150px">
+    <div class="label">${c.label}</div><div class="value">${c.value}</div><div class="sub">${c.sub}</div>
+  </div>`).join('');
+
+  const labels = weekends.map(weekendLabel);
+  const barBase = { responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{x:{grid:{display:false}},y:{grid:{color:'#e5e9f0'}}} };
+
+  charts.wkendCotas = new Chart(document.getElementById('chart-weekend-cotas'), {
+    type:'bar', data:{ labels, datasets:[{ data: weekends.map(wk=>cwkend[wk]||0), backgroundColor: COLOR.blue, borderRadius:4 }] }, options: barBase
+  });
+  charts.wkendSolas = new Chart(document.getElementById('chart-weekend-solas'), {
+    type:'bar', data:{ labels, datasets:[{ data: weekends.map(wk=>swkend[wk]||0), backgroundColor: COLOR.orange, borderRadius:4 }] }, options: barBase
+  });
+
+  const pct   = (a,b) => b ? ((a-b)/b*100) : null;
+  const arrow = v => v==null?'—': v>2?`<span style="color:#10b981">▲ +${v.toFixed(0)}%</span>`:v<-2?`<span style="color:#ef4444">▼ ${v.toFixed(0)}%</span>`:`<span style="color:#808285">≈</span>`;
+
+  const head = `<tr>
+    <th>Fin de semana</th>
+    <th class="num">Cotas</th><th class="num">Δ</th>
+    <th class="num">Solas</th><th class="num">Δ</th>
+    <th class="num">Conv%</th><th class="num">Δ Conv</th>
+    <th class="num">% Cotas tot.</th><th class="num">% Solas tot.</th>
+  </tr>`;
+
+  const body = weekends.map((wk, i) => {
+    const c=cwkend[wk]||0, s=swkend[wk]||0;
+    const prev=i>0?weekends[i-1]:null;
+    const cp=prev?cwkend[prev]||0:null, sp2=prev?swkend[prev]||0:null;
+    const conv=c?s/c:null, convP=(cp&&sp2)?sp2/cp:null;
+    return `<tr>
+      <td style="font-weight:600; white-space:nowrap">${weekendLabel(wk)}</td>
+      <td class="num blue">${fmtInt(c)}</td><td class="num">${arrow(pct(c,cp))}</td>
+      <td class="num orange">${fmtInt(s)}</td><td class="num">${arrow(pct(s,sp2))}</td>
+      <td class="num">${fmtPct(conv)}</td><td class="num">${arrow(conv!=null&&convP!=null?pct(conv,convP):null)}</td>
+      <td class="num">${fmtPct(d.cotas.total?c/d.cotas.total:null)}</td>
+      <td class="num">${fmtPct(d.solas.total?s/d.solas.total:null)}</td>
+    </tr>`;
+  }).join('');
+
+  const foot = `<tr>
+    <td class="total-row">TOTAL FINES DE SEMANA</td>
+    <td class="num total-row blue">${fmtInt(totalWkC)}</td><td class="num total-row">—</td>
+    <td class="num total-row orange">${fmtInt(totalWkS)}</td><td class="num total-row">—</td>
+    <td class="num total-row">${fmtPct(wkConv)}</td><td class="num total-row">—</td>
+    <td class="num total-row">${fmtPct(shareC)}</td>
+    <td class="num total-row">${fmtPct(shareS)}</td>
+  </tr>`;
+
+  const t = document.getElementById('weekend-table');
+  t.querySelector('thead').innerHTML = head;
+  t.querySelector('tbody').innerHTML = body + foot;
+}
+
+// ─── Render todo ──────────────────────────────────────────────────────────────
+function renderAll(d) {
+  renderKPIs(d);
+  renderFunnel(d);
+  renderPlatformTable(d);
+  renderCplCpaCharts(d);
+  renderMonthlyCharts(d);
+  renderMonthlyTable(d);
+  renderDailyChart(d);
+  renderWeekly(d, readWeekFilters());
+  renderWeekends(d);
+  renderRecommendationsCS(d);
+}
+
+function updateRangeLabel(from, to) {
+  const el = document.getElementById('date-range-label');
+  if (!from && !to) { el.textContent = 'Todo el período cargado'; return; }
+  const fmt = s => s ? new Date(s+'T00:00:00').toLocaleDateString('es-AR',{day:'numeric',month:'short',year:'numeric'}) : '';
+  el.textContent = from && to ? `${fmt(from)} — ${fmt(to)}` : (from ? `desde ${fmt(from)}` : `hasta ${fmt(to)}`);
+}
+
+function applyFilter() {
+  const from = document.getElementById('date-from').value;
+  const to   = document.getElementById('date-to').value;
+  if (DATA.date_range.ayer && from === DATA.date_range.ayer && to === DATA.date_range.ayer) {
+    applyPreset('today'); return;
+  }
+  const filtered = filterByDateRange(DATA, from, to);
+  renderAll(filtered);
+  updateRangeLabel(from, to);
+}
+
+function applyPreset(preset) {
+  const from  = document.getElementById('date-from');
+  const to    = document.getElementById('date-to');
+  const today = new Date(DATA.date_range.to + 'T00:00:00');
+  const iso   = d => d.toISOString().slice(0,10);
+  if (preset === 'today') {
+    const ayerDate = DATA.date_range.ayer || iso(today);
+    from.value = to.value = ayerDate;
+    if (DATA.google_ads_ayer?.length) {
+      const sc = (obj,r) => Object.fromEntries(Object.entries(obj).map(([k,v])=>[k,Math.round(v*r)]));
+      const rc = DATA.cotas.total ? (DATA.cotas.ayer||0)/DATA.cotas.total : 0;
+      const rs = DATA.solas.total ? (DATA.solas.ayer||0)/DATA.solas.total : 0;
+      renderAll({ ...DATA, google_ads: DATA.google_ads_ayer, meta_ads: DATA.meta_ads_ayer||[],
+        cotas: { ...DATA.cotas, total: DATA.cotas.ayer||0, by_platform: sc(DATA.cotas.by_platform,rc), platform_codes: DATA.cotas.platform_codes||{}, by_campaign_code: Object.fromEntries(Object.entries(DATA.cotas.by_campaign_code||{}).map(([k,v])=>[k,{...v,cotas:Math.round(v.cotas*rc)}])), daily: {[ayerDate]: DATA.cotas.ayer||0} },
+        solas: { ...DATA.solas, total: DATA.solas.ayer||0, by_platform: sc(DATA.solas.by_platform,rs), daily: {[ayerDate]: DATA.solas.ayer||0} }
+      });
+      updateRangeLabel(ayerDate, ayerDate); return;
+    }
+  } else if (preset === '7d') { const s = new Date(today); s.setDate(s.getDate()-6); from.value = iso(s); to.value = iso(today); }
+  else if (preset === 'mtd') { from.value = DATA.date_range.from; to.value = DATA.date_range.to; }
+  else if (preset === 'lastmonth') {
+    const y = today.getFullYear(), m = today.getMonth();
+    from.value = iso(new Date(y, m-1, 1)); to.value = iso(new Date(y, m, 0));
+  }
+  else if (preset === 'all') { from.value = ''; to.value = ''; }
+  applyFilter();
+}
+
+document.getElementById('generated-at').textContent = new Date(DATA.generated_at).toLocaleString('es-AR');
+document.getElementById('apply-filter').addEventListener('click', applyFilter);
+document.querySelectorAll('.presets button').forEach(b => b.addEventListener('click', () => applyPreset(b.dataset.preset)));
+
+// ─── Filtro semanal ───────────────────────────────────────────────────────────
+const _refDate = DATA.date_range?.to || new Date().toISOString().slice(0,10);
+populateWeekFilters(getLastNWeekRanges(4, _refDate));
+
+document.getElementById('apply-weekly').addEventListener('click', () => {
+  const ranges = readWeekFilters();
+  if (!ranges.length) return;
+  const filtered = filterByDateRange(DATA, document.getElementById('date-from').value, document.getElementById('date-to').value);
+  renderWeekly(filtered, ranges);
+});
+
+document.getElementById('reset-weekly').addEventListener('click', () => {
+  const resetRanges = getLastNWeekRanges(4, _refDate);
+  populateWeekFilters(resetRanges);
+  const filtered = filterByDateRange(DATA, document.getElementById('date-from').value, document.getElementById('date-to').value);
+  renderWeekly(filtered, resetRanges);
+});
+
+applyPreset('mtd');
+</script>
+</body>
+</html>
