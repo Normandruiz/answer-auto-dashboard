@@ -432,7 +432,8 @@ function renderRanking(d) {
 
 function renderRecs(d) {
   const recs = [];
-  const rows = buildCrossRows(d);
+  // Solo campañas de producto AUTO (Google siempre; Meta solo las que contienen "Auto")
+  const rows = buildCrossRows(d).filter(r => r.src === 'Google' || r.campaign.includes('Auto'));
   for (const r of rows) {
     if (NEVER_SCALE.has(r.campaign)) {
       recs.push({ tag: 'OPTIMIZE', cls: 'optimize', title: r.campaign + ' — mantener, no escalar', body: 'INTERIOR no es rentable para el cliente. Optimizar calidad (keywords, LPs), mantener presupuesto actual.' });
