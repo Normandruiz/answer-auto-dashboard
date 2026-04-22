@@ -11,15 +11,17 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = resolve(__dirname, '..');
 
 const dataPath = resolve(REPO_ROOT, process.argv[2] || 'data/mock.json');
-const templatePath           = resolve(REPO_ROOT, 'generate/template.html');
-const cotasSolasTemplatePath = resolve(REPO_ROOT, 'generate/cotas-solas-template.html');
-const crossTemplatePath      = resolve(REPO_ROOT, 'generate/cross-template.html');
+const templatePath             = resolve(REPO_ROOT, 'generate/template.html');
+const cotasSolasTemplatePath   = resolve(REPO_ROOT, 'generate/cotas-solas-template.html');
+const crossTemplatePath        = resolve(REPO_ROOT, 'generate/cross-template.html');
+const proyeccionTemplatePath   = resolve(REPO_ROOT, 'generate/proyeccion-template.html');
 
-const [rawData, template, cotasSolasTemplate, crossTemplate] = await Promise.all([
+const [rawData, template, cotasSolasTemplate, crossTemplate, proyeccionTemplate] = await Promise.all([
   readFile(dataPath, 'utf8'),
   readFile(templatePath, 'utf8'),
   readFile(cotasSolasTemplatePath, 'utf8').catch(() => null),
-  readFile(crossTemplatePath, 'utf8').catch(() => null)
+  readFile(crossTemplatePath, 'utf8').catch(() => null),
+  readFile(proyeccionTemplatePath, 'utf8').catch(() => null)
 ]);
 
 const data = JSON.parse(rawData);
@@ -76,6 +78,15 @@ if (crossTemplate) {
   console.log(`✓ cross.html generado (${crossHtml.length.toLocaleString()} chars)`);
 } else {
   console.warn('  ⚠ cross-template.html no encontrado — omitido');
+}
+
+// Generar proyeccion.html
+if (proyeccionTemplate) {
+  const proyeccionHtml = proyeccionTemplate.replace('__DATA_JSON__', safeJson);
+  await writeFile(resolve(REPO_ROOT, 'proyeccion.html'), proyeccionHtml, 'utf8');
+  console.log(`✓ proyeccion.html generado (${proyeccionHtml.length.toLocaleString()} chars)`);
+} else {
+  console.warn('  ⚠ proyeccion-template.html no encontrado — omitido');
 }
 
 const dateStamp = (data.date_range?.to || new Date().toISOString().slice(0, 10));

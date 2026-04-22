@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Answer Seguros — Proyección de Campañas Auto</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+body { background: linear-gradient(180deg, #ffffff 0%, #f0f3f8 100%); background-attachment: fixed; color: #2B2B2B; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.5; padding: 24px; min-height: 100vh; }
+.container { max-width: 1440px; margin: 0 auto; }
+
+header.hero { background: #ffffff; padding: 24px 32px; border-radius: 16px; border: 1px solid #e5e9f0; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,51,160,.06); border-top: 4px solid; border-image: linear-gradient(90deg, #0033A0, #10b981) 1; }
+header.hero .brand-row { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-bottom: 16px; }
+header.hero .brand-row .logo { height: 64px; width: auto; max-width: 240px; object-fit: contain; }
+header.hero .title-block { flex: 1; text-align: center; }
+header.hero h1 { font-size: 28px; background: linear-gradient(90deg, #0033A0, #10b981); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 6px; font-weight: 800; }
+header.hero .sub { color: #6A6A6A; font-size: 13px; }
+header.hero .meta-row { display: flex; gap: 24px; justify-content: center; flex-wrap: wrap; font-size: 13px; color: #808285; padding-top: 14px; border-top: 1px solid #f0f3f8; }
+header.hero .meta-row strong { color: #2B2B2B; font-weight: 600; }
+@media (max-width: 720px) { header.hero .brand-row { flex-direction: column; gap: 12px; } header.hero h1 { font-size: 22px; } }
+
+.nav-links { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
+.back-btn { display: inline-flex; align-items: center; gap: 8px; background: #f0f3f8; border: 1px solid #e5e9f0; color: #0033A0; font-weight: 600; font-size: 13px; padding: 10px 18px; border-radius: 8px; text-decoration: none; transition: all .15s; }
+.back-btn:hover { background: #e5e9f0; border-color: #4D7CC7; }
+
+.controls-bar { display: flex; gap: 20px; flex-wrap: wrap; align-items: center; background: #ffffff; border: 1px solid #e5e9f0; border-radius: 12px; padding: 18px 24px; margin-bottom: 24px; box-shadow: 0 1px 3px rgba(0,51,160,.04); border-left: 4px solid #10b981; }
+.ctrl-group { display: flex; flex-direction: column; gap: 4px; }
+.ctrl-label { font-size: 11px; color: #808285; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; }
+.ctrl-value { font-size: 15px; font-weight: 700; color: #2B2B2B; }
+.ctrl-sep { font-size: 22px; color: #d1d5db; margin-top: 8px; }
+.date-picker { border: 1.5px solid #e5e9f0; border-radius: 8px; padding: 9px 13px; font-size: 14px; font-weight: 600; color: #2B2B2B; background: #f8fafd; outline: none; cursor: pointer; transition: border-color .15s, box-shadow .15s; }
+.date-picker:focus { border-color: #10b981; box-shadow: 0 0 0 3px rgba(16,185,129,.15); }
+.days-pill { background: linear-gradient(90deg,#0033A0,#4D7CC7); color: #fff; font-size: 13px; font-weight: 700; padding: 10px 18px; border-radius: 8px; white-space: nowrap; }
+.ctrl-vdiv { width: 1px; background: #e5e9f0; align-self: stretch; margin: 0 4px; }
+.scenario-select { border: 1.5px solid #e5e9f0; border-radius: 8px; padding: 9px 13px; font-size: 13px; font-weight: 600; color: #2B2B2B; background: #f8fafd; outline: none; cursor: pointer; transition: border-color .15s; }
+.scenario-select:focus { border-color: #10b981; }
+.scenario-pill { font-size: 12px; font-weight: 700; padding: 8px 14px; border-radius: 8px; color: #fff; transition: background .2s; }
+.ctrl-note { font-size: 11px; color: #808285; margin-left: auto; max-width: 200px; line-height: 1.4; }
+
+.kpi-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 16px; margin-bottom: 24px; }
+.kpi-card { background: #ffffff; border: 1px solid #e5e9f0; border-radius: 12px; padding: 20px; border-left: 4px solid #0033A0; box-shadow: 0 1px 3px rgba(0,51,160,.04); }
+.kpi-card .label { font-size: 11px; color: #808285; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; font-weight: 600; }
+.kpi-card .value { font-size: 24px; font-weight: 700; color: #2B2B2B; }
+.kpi-card .sub { font-size: 11px; color: #808285; margin-top: 4px; }
+.kpi-card.blue   { border-left-color: #0033A0; } .kpi-card.blue   .value { color: #0033A0; }
+.kpi-card.orange { border-left-color: #FA6400; } .kpi-card.orange .value { color: #FA6400; }
+.kpi-card.green  { border-left-color: #10b981; } .kpi-card.green  .value { color: #10b981; }
+.kpi-card.mid    { border-left-color: #4D7CC7; } .kpi-card.mid    .value { color: #4D7CC7; }
+
+.section { background: #ffffff; border: 1px solid #e5e9f0; border-radius: 12px; padding: 24px; margin-bottom: 24px; box-shadow: 0 1px 3px rgba(0,51,160,.04); }
+.section h2 { font-size: 18px; margin-bottom: 16px; color: #2B2B2B; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+.section h2 .badge { font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 20px; background: #f0f3f8; color: #6A6A6A; }
+
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th { background: #f0f3f8; color: #6A6A6A; font-weight: 700; padding: 10px 12px; text-align: left; border-bottom: 1px solid #e5e9f0; font-size: 11px; text-transform: uppercase; letter-spacing: 0.3px; white-space: nowrap; }
+th.num, td.num { text-align: right; font-variant-numeric: tabular-nums; }
+th.proj-col { background: rgba(16,185,129,.1); color: #059669; }
+td { padding: 10px 12px; border-bottom: 1px solid #f0f3f8; color: #2B2B2B; }
+tr:hover td { background: #fafbfd; }
+td.blue    { color: #0033A0; font-weight: 600; }
+td.orange  { color: #FA6400; font-weight: 600; }
+td.green   { color: #10b981; font-weight: 600; }
+td.warning { color: #ef4444; font-weight: 700; }
+td.good    { color: #10b981; font-weight: 700; }
+td.muted   { color: #808285; }
+td.proj-blue   { color: #0033A0; font-weight: 700; }
+td.proj-orange { color: #FA6400; font-weight: 700; }
+td.proj-green  { color: #10b981; font-weight: 700; }
+td.total-row { background: #f0f3f8 !important; font-weight: 700; border-top: 2px solid #e5e9f0; }
+
+.badge-source { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 20px; white-space: nowrap; }
+.badge-source.google { background: rgba(0,51,160,.1); color: #0033A0; }
+.badge-source.meta   { background: rgba(250,100,0,.12); color: #FA6400; }
+.badge-tipo { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 4px; background: #f0f3f8; color: #6A6A6A; white-space: nowrap; }
+.badge-tipo.search { background: rgba(0,51,160,.08); color: #0033A0; }
+.badge-tipo.pmax   { background: rgba(77,124,199,.12); color: #4D7CC7; }
+.badge-tipo.dgen   { background: rgba(16,185,129,.1); color: #10b981; }
+.badge-tipo.conv   { background: rgba(250,100,0,.1); color: #FA6400; }
+.badge-tipo.test   { background: rgba(168,67,8,.1); color: #A84308; }
+
+.prob-badge { display: inline-flex; align-items: center; gap: 5px; font-size: 10px; font-weight: 700; padding: 3px 9px; border-radius: 20px; white-space: nowrap; }
+.prob-badge.alta  { background: rgba(16,185,129,.12);  color: #059669; }
+.prob-badge.buena { background: rgba(20,184,166,.12);  color: #0d9488; }
+.prob-badge.media { background: rgba(245,158,11,.12);  color: #d97706; }
+.prob-badge.baja  { background: rgba(239,68,68,.12);   color: #ef4444; }
+
+.plat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px; }
+.mini-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.mini-stat { background: #f8fafd; border: 1px solid #f0f3f8; border-radius: 8px; padding: 14px 16px; }
+.mini-stat .m-label { font-size: 11px; color: #808285; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 4px; }
+.mini-stat .m-val   { font-size: 20px; font-weight: 700; color: #2B2B2B; }
+.mini-stat .m-val.blue   { color: #0033A0; }
+.mini-stat .m-val.orange { color: #FA6400; }
+.mini-stat .m-val.green  { color: #10b981; }
+
+.chart-row { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px; }
+.chart-box { background: #ffffff; border: 1px solid #e5e9f0; border-radius: 12px; padding: 24px; box-shadow: 0 1px 3px rgba(0,51,160,.04); }
+.chart-box h3 { margin-bottom: 16px; color: #2B2B2B; font-size: 15px; font-weight: 700; }
+
+footer { text-align: center; padding: 24px; color: #808285; font-size: 12px; }
+
+@media (max-width: 1200px) { .kpi-grid { grid-template-columns: repeat(3,1fr); } .chart-row { grid-template-columns: 1fr; } .plat-grid { grid-template-columns: 1fr; } }
+@media (max-width: 640px)  { .kpi-grid { grid-template-columns: 1fr 1fr; } .controls-bar { flex-direction: column; align-items: flex-start; } .ctrl-note { margin-left: 0; } }
+@media print { body { background: #fff !important; } .nav-links, .controls-bar { display: none; } }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header class="hero">
+    <div class="brand-row">
+      <img src="assets/logo-answer.png" alt="Answer Galicia Seguros" class="logo" onerror="this.style.visibility='hidden'">
+      <div class="title-block">
+        <h1>Dashboard Proyección — Campañas Auto</h1>
+        <div class="sub">GOOGLE ADS + META ADS · Proyección lineal basada en tasa diaria · Cotas, Solas y Probabilidad de Cierre</div>
+      </div>
+      <img src="assets/logo-beyond.png" alt="Beyond" class="logo" onerror="this.style.visibility='hidden'">
+    </div>
+    <div class="meta-row">
+      <span>Generado: <strong id="generated-at"></strong></span>
+      <span>Datos desde: <strong id="data-date-display"></strong></span>
+      <span>Fuente: <strong>Google Ads · Meta Ads · CRM (Cotas/Solas)</strong></span>
+    </div>
+  </header>
+
+  <div class="nav-links">
+    <a href="index.html" class="back-btn">
+      <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+      Dashboard Principal
+    </a>
+    <a href="cotas-solas.html" class="back-btn">
+      <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+      Cotas / Solas
+    </a>
+    <a href="cross.html" class="back-btn">
+      <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12M8 12h12M8 17h12M4 7h.01M4 12h.01M4 17h.01"/></svg>
+      Cross
+    </a>
+  </div>
+
+  <!-- Barra de controles -->
+  <div class="controls-bar">
+    <div class="ctrl-group">
+      <div class="ctrl-label">Datos de</div>
+      <div class="ctrl-value" id="data-date-val">—</div>
+    </div>
+    <div class="ctrl-sep">→</div>
+    <div class="ctrl-group">
+      <div class="ctrl-label">Proyectar hasta</div>
+      <input type="date" id="end-date-input" class="date-picker">
+    </div>
+    <div class="days-pill" id="days-pill">— días</div>
+    <div class="ctrl-vdiv"></div>
+    <div class="ctrl-group">
+      <div class="ctrl-label">Escenario</div>
+      <select id="scenario-select" class="scenario-select">
+        <option value="1.2">Optimista (+20%)</option>
+        <option value="1.0" selected>Base (tasa actual)</option>
+        <option value="0.8">Conservador (−20%)</option>
+      </select>
+    </div>
+    <div class="scenario-pill" id="scenario-pill">Base</div>
+    <div class="ctrl-note">
+      Proyección lineal: tasa diaria × días seleccionados. El escenario ajusta el rendimiento esperado.
+    </div>
+  </div>
+
+  <!-- KPIs -->
+  <div class="kpi-grid" id="kpi-grid"></div>
+
+  <!-- Tabla principal -->
+  <div class="section">
+    <h2>
+      <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"/></svg>
+      Proyección por Campaña
+      <span class="badge" id="table-badge">— campañas</span>
+    </h2>
+    <div style="overflow-x:auto">
+      <table id="proj-table"><thead></thead><tbody></tbody></table>
+    </div>
+    <div style="font-size:11px;color:#808285;margin-top:10px;line-height:1.5">
+      * <strong>Columnas resaltadas en verde</strong> = valores proyectados al período seleccionado. Columnas en gris = tasa diaria base.
+      <br>* <strong>Capture%</strong> = Cotas CRM / Conversiones plataforma (indica calidad de atribución).
+      <br>* <strong>Prob. Cierre</strong> = Conv% (Solas/Cotas) usado como probabilidad de emisión de póliza.
+    </div>
+  </div>
+
+  <!-- Resumen por plataforma -->
+  <div class="plat-grid">
+    <div class="section">
+      <h2>
+        <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path stroke-linecap="round" stroke-linejoin="round" d="M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>
+        Google Ads
+        <span class="badge">Auto</span>
+      </h2>
+      <div class="mini-stats" id="google-summary"></div>
+    </div>
+    <div class="section">
+      <h2>
+        <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/></svg>
+        Meta Ads
+        <span class="badge">Auto</span>
+      </h2>
+      <div class="mini-stats" id="meta-summary"></div>
+    </div>
+  </div>
+
+  <!-- Gráficos -->
+  <div class="chart-row">
+    <div class="chart-box">
+      <h3>
+        Cotas proyectadas por campaña
+        <span style="font-size:11px;font-weight:400;color:#808285;margin-left:8px">· <span style="background:rgba(0,51,160,.08);padding:2px 7px;border-radius:4px;color:#0033A0;font-weight:600;font-size:11px">Google</span> · <span style="background:rgba(250,100,0,.12);padding:2px 7px;border-radius:4px;color:#FA6400;font-weight:600;font-size:11px">Meta</span></span>
+      </h3>
+      <canvas id="chart-cotas"></canvas>
+    </div>
+    <div class="chart-box">
+      <h3>
+        Solas proyectadas por campaña
+        <span style="font-size:11px;font-weight:400;color:#808285;margin-left:8px">· <span style="background:rgba(0,51,160,.08);padding:2px 7px;border-radius:4px;color:#0033A0;font-weight:600;font-size:11px">Google</span> · <span style="background:rgba(250,100,0,.12);padding:2px 7px;border-radius:4px;color:#FA6400;font-weight:600;font-size:11px">Meta</span></span>
+      </h3>
+      <canvas id="chart-solas"></canvas>
+    </div>
+  </div>
+
+  <footer>
+    <div>Fuentes: Google Ads · Meta Ads · CRM (Base Cotas · Base Solas) · Moneda: ARS</div>
+    <div style="margin-top:6px">Answer Seguros · Grupo Galicia · Dashboard autogenerado</div>
+  </footer>
+
+</div>
+
+<script id="dashboard-data" type="application/json">__DATA_JSON__</script>
+
+<script>
+const d = JSON.parse(document.getElementById('dashboard-data').textContent);
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+const fmtInt  = n => (n == null || isNaN(n)) ? '—' : Math.round(n).toLocaleString('es-AR');
+const fmtARS  = n => (n == null || isNaN(n)) ? '—' : '$' + Math.round(n).toLocaleString('es-AR');
+const fmtARSk = n => {
+  if (n == null || isNaN(n)) return '—';
+  if (n >= 1e9) return '$' + (n/1e9).toFixed(2) + 'B';
+  if (n >= 1e6) return '$' + (n/1e6).toFixed(1) + 'M';
+  if (n >= 1e3) return '$' + (n/1e3).toFixed(0) + 'K';
+  return '$' + Math.round(n);
+};
+const fmtPct = n => (n == null || isNaN(n)) ? '—' : (n * 100).toFixed(1) + '%';
+
+function campaignType(name) {
+  const n = name.toLowerCase();
+  if (/pmax|performance max/.test(n)) return { label: 'PMax',      cls: 'pmax'   };
+  if (/demand.?gen/.test(n))           return { label: 'DemandGen', cls: 'dgen'   };
+  if (/a\/b.?test|test/.test(n))       return { label: 'A/B Test',  cls: 'test'   };
+  if (/search/.test(n))                return { label: 'Search',    cls: 'search' };
+  if (/conversiones|conv/.test(n))     return { label: 'Conv',      cls: 'conv'   };
+  return { label: 'Otro', cls: '' };
+}
+
+function probInfo(conv) {
+  if (conv == null) return null;
+  if (conv >= 0.15) return { label: 'Alta',  cls: 'alta',  text: 'Excelente' };
+  if (conv >= 0.10) return { label: 'Buena', cls: 'buena', text: 'Sobre promedio' };
+  if (conv >= 0.05) return { label: 'Media', cls: 'media', text: 'Normal' };
+  return               { label: 'Baja',  cls: 'baja',  text: 'A mejorar' };
+}
+
+// ─── Datos base (tasa diaria) ─────────────────────────────────────────────────
+const EXCLUDE_CAMP = 'Search - Movilidad - Segment  - AR';
+const GA_AUTO   = (d.google_ads || []).filter(c => /auto/i.test(c.campaign) && c.campaign !== EXCLUDE_CAMP);
+const META_AUTO = (d.meta_ads   || []).filter(c => /auto/i.test(c.campaign));
+
+function buildBaseRows() {
+  const cotasP = d.cotas?.by_platform || {};
+  const solasP = d.solas?.by_platform || {};
+  const rows   = [];
+
+  const process = (camps, source) => {
+    for (const camp of camps) {
+      const dailySpend = camp.spend  || 0;
+      const dailyConv  = camp.conversions || camp.results || 0;
+      const dailyCotas = cotasP[camp.campaign] || 0;
+      const dailySolas = solasP[camp.campaign] || 0;
+      rows.push({
+        source, campaign: camp.campaign,
+        tipo: campaignType(camp.campaign),
+        dailySpend, dailyConv, dailyCotas, dailySolas,
+        captureRate: dailyConv  > 0 ? dailyCotas / dailyConv  : null,
+        convRate:    dailyCotas > 0 ? dailySolas / dailyCotas : null
+      });
+    }
+  };
+  process(GA_AUTO,   'Google');
+  process(META_AUTO, 'Meta');
+  rows.sort((a, b) => b.dailyCotas - a.dailyCotas || b.dailySpend - a.dailySpend);
+  return rows;
+}
+
+const BASE_ROWS = buildBaseRows();
+let chartCotas = null, chartSolas = null;
+
+// ─── Render (re-ejecuta en cada cambio) ──────────────────────────────────────
+function renderAll(days, mult) {
+  const rows = BASE_ROWS.map(r => {
+    const pSpend = r.dailySpend * days * mult;
+    const pCotas = r.dailyCotas * days * mult;
+    const pSolas = r.dailySolas * days * mult;
+    return { ...r,
+      pSpend, pConv: r.dailyConv * days * mult,
+      pCotas, pSolas,
+      pCpoSola: pSolas > 0 ? pSpend / pSolas : null
+    };
+  });
+
+  renderKPIs(rows, days);
+  renderTable(rows, days);
+  renderPlatSummary(rows, 'Google', 'google-summary');
+  renderPlatSummary(rows, 'Meta',   'meta-summary');
+  renderCharts(rows);
+}
+
+// KPIs
+function renderKPIs(rows, days) {
+  const tSpend = rows.reduce((s, r) => s + r.pSpend, 0);
+  const tConv  = rows.reduce((s, r) => s + r.pConv,  0);
+  const tCotas = rows.reduce((s, r) => s + r.pCotas, 0);
+  const tSolas = rows.reduce((s, r) => s + r.pSolas, 0);
+  const convR  = tCotas > 0 ? tSolas / tCotas : null;
+  const cpo    = tSolas > 0 ? tSpend / tSolas : null;
+  document.getElementById('kpi-grid').innerHTML = [
+    { label: 'Gasto proyectado',     value: fmtARSk(tSpend),  cls: 'mid',    sub: `${fmtARSk(tSpend/days)}/día × ${days} días` },
+    { label: 'Conv. plataforma',     value: fmtInt(tConv),    cls: 'blue',   sub: `${fmtInt(tConv/days)}/día proyectado` },
+    { label: 'Cotas proyectadas',    value: fmtInt(tCotas),   cls: 'blue',   sub: `${fmtInt(tCotas/days)}/día proyectado` },
+    { label: 'Solas proyectadas',    value: fmtInt(tSolas),   cls: 'orange', sub: `${fmtInt(tSolas/days)}/día proyectado` },
+    { label: 'Prob. cierre (Conv%)', value: fmtPct(convR),    cls: 'green',  sub: 'Solas / Cotas total proyectado' },
+    { label: '$/Sola proyectado',    value: fmtARS(cpo),      cls: 'mid',    sub: 'Gasto total / Solas proyectadas' }
+  ].map(c => `<div class="kpi-card ${c.cls}"><div class="label">${c.label}</div><div class="value">${c.value}</div><div class="sub">${c.sub}</div></div>`).join('');
+}
+
+// Tabla principal
+function renderTable(rows, days) {
+  document.getElementById('table-badge').textContent = `${rows.length} campañas · ${days} días`;
+
+  const head = `<tr>
+    <th>#</th>
+    <th>Fuente</th>
+    <th style="min-width:200px">Campaña</th>
+    <th>Tipo</th>
+    <th class="num">$/día</th>
+    <th class="num proj-col">Gasto proy.</th>
+    <th class="num">Conv/día</th>
+    <th class="num proj-col">Conv. proy.</th>
+    <th class="num">Cotas/día</th>
+    <th class="num proj-col">Cotas proy.</th>
+    <th class="num">Capture%</th>
+    <th class="num">Solas/día</th>
+    <th class="num proj-col">Solas proy.</th>
+    <th class="num">Prob. Cierre</th>
+    <th class="num proj-col">$/Sola proy.</th>
+  </tr>`;
+
+  const body = rows.map((r, i) => {
+    const srcCls = r.source === 'Google' ? 'google' : 'meta';
+    const prob   = probInfo(r.convRate);
+    const capCls = r.captureRate != null ? (r.captureRate > 0.65 ? 'good' : r.captureRate < 0.3 ? 'warning' : '') : '';
+    return `<tr>
+      <td class="muted">${i + 1}</td>
+      <td><span class="badge-source ${srcCls}">${r.source}</span></td>
+      <td style="font-size:12px;font-weight:600;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.campaign}">${r.campaign}</td>
+      <td><span class="badge-tipo ${r.tipo.cls}">${r.tipo.label}</span></td>
+      <td class="num muted">${fmtARSk(r.dailySpend)}</td>
+      <td class="num proj-blue">${fmtARSk(r.pSpend)}</td>
+      <td class="num muted">${fmtInt(r.dailyConv)}</td>
+      <td class="num proj-blue">${fmtInt(r.pConv)}</td>
+      <td class="num muted">${fmtInt(r.dailyCotas)}</td>
+      <td class="num proj-blue">${fmtInt(r.pCotas)}</td>
+      <td class="num ${capCls}">${fmtPct(r.captureRate)}</td>
+      <td class="num muted">${fmtInt(r.dailySolas)}</td>
+      <td class="num proj-orange">${fmtInt(r.pSolas)}</td>
+      <td class="num">${prob ? `<span class="prob-badge ${prob.cls}">${prob.label} · ${fmtPct(r.convRate)}</span>` : '—'}</td>
+      <td class="num proj-green">${fmtARS(r.pCpoSola)}</td>
+    </tr>`;
+  }).join('');
+
+  const tSpend = rows.reduce((s,r)=>s+r.pSpend,0);
+  const tConv  = rows.reduce((s,r)=>s+r.pConv,0);
+  const tCotas = rows.reduce((s,r)=>s+r.pCotas,0);
+  const tSolas = rows.reduce((s,r)=>s+r.pSolas,0);
+  const footer = `<tr>
+    <td colspan="4" class="total-row">TOTAL (${rows.length} campañas · ${days} días)</td>
+    <td class="num total-row muted">${fmtARSk(rows.reduce((s,r)=>s+r.dailySpend,0))}</td>
+    <td class="num total-row">${fmtARSk(tSpend)}</td>
+    <td class="num total-row muted">${fmtInt(rows.reduce((s,r)=>s+r.dailyConv,0))}</td>
+    <td class="num total-row">${fmtInt(tConv)}</td>
+    <td class="num total-row muted">${fmtInt(rows.reduce((s,r)=>s+r.dailyCotas,0))}</td>
+    <td class="num total-row">${fmtInt(tCotas)}</td>
+    <td class="num total-row">—</td>
+    <td class="num total-row muted">${fmtInt(rows.reduce((s,r)=>s+r.dailySolas,0))}</td>
+    <td class="num total-row">${fmtInt(tSolas)}</td>
+    <td class="num total-row">${fmtPct(tCotas>0?tSolas/tCotas:null)}</td>
+    <td class="num total-row">${fmtARS(tSolas>0?tSpend/tSolas:null)}</td>
+  </tr>`;
+
+  const t = document.getElementById('proj-table');
+  t.querySelector('thead').innerHTML = head;
+  t.querySelector('tbody').innerHTML = body + footer;
+}
+
+// Resumen por plataforma
+function renderPlatSummary(rows, src, id) {
+  const r  = rows.filter(x => x.source === src);
+  const el = document.getElementById(id);
+  if (!r.length) { el.innerHTML = '<p style="color:#808285;font-size:13px">Sin datos</p>'; return; }
+  const tSpend = r.reduce((s,x)=>s+x.pSpend,0);
+  const tConv  = r.reduce((s,x)=>s+x.pConv,0);
+  const tCotas = r.reduce((s,x)=>s+x.pCotas,0);
+  const tSolas = r.reduce((s,x)=>s+x.pSolas,0);
+  const convR  = tCotas > 0 ? tSolas/tCotas : null;
+  const cpo    = tSolas > 0 ? tSpend/tSolas : null;
+  el.innerHTML = [
+    { label:'Gasto proy.',   val:fmtARSk(tSpend), cls:'' },
+    { label:'Conv. plat.',   val:fmtInt(tConv),   cls:'' },
+    { label:'Cotas proy.',   val:fmtInt(tCotas),  cls:'blue' },
+    { label:'Solas proy.',   val:fmtInt(tSolas),  cls:'orange' },
+    { label:'Prob. cierre',  val:fmtPct(convR),   cls:'green' },
+    { label:'$/Sola proy.',  val:fmtARS(cpo),     cls:'' }
+  ].map(c=>`<div class="mini-stat"><div class="m-label">${c.label}</div><div class="m-val ${c.cls}">${c.val}</div></div>`).join('');
+}
+
+// Gráficos
+function renderCharts(rows) {
+  chartCotas?.destroy?.();
+  chartSolas?.destroy?.();
+  if (!rows.length) return;
+
+  const labels  = rows.map(r => r.campaign.length > 40 ? r.campaign.slice(0,40)+'…' : r.campaign);
+  const colors  = rows.map(r => r.source === 'Google' ? 'rgba(0,51,160,0.75)' : 'rgba(250,100,0,0.75)');
+  const h       = Math.max(300, rows.length * 38);
+
+  const makeChart = (id, data, label) => {
+    const el = document.getElementById(id);
+    el.style.maxHeight = h + 'px';
+    el.parentElement.style.minHeight = (h + 60) + 'px';
+    return new Chart(el, {
+      type: 'bar',
+      data: { labels, datasets: [{ label, data, backgroundColor: colors, borderRadius: 4 }] },
+      options: {
+        indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` ${label}: ${fmtInt(ctx.raw)}` } } },
+        scales: {
+          x: { grid: { color: '#e5e9f0' }, ticks: { font: { size: 11 } } },
+          y: { grid: { display: false },   ticks: { font: { size: 11 } } }
+        }
+      }
+    });
+  };
+
+  chartCotas = makeChart('chart-cotas', rows.map(r => Math.round(r.pCotas)), 'Cotas');
+  chartSolas = makeChart('chart-solas', rows.map(r => Math.round(r.pSolas)), 'Solas');
+}
+
+// ─── Inicialización ───────────────────────────────────────────────────────────
+document.getElementById('generated-at').textContent =
+  d.generated_at ? new Date(d.generated_at).toLocaleString('es-AR') : new Date().toLocaleString('es-AR');
+
+const DATA_DATE = d.date_range?.from || d.date_range?.to || new Date().toISOString().slice(0,10);
+document.getElementById('data-date-display').textContent = DATA_DATE;
+document.getElementById('data-date-val').textContent     = DATA_DATE;
+
+// Fin de mes por defecto
+const _today   = new Date();
+const _lastDay = new Date(_today.getFullYear(), _today.getMonth() + 1, 0).toISOString().slice(0,10);
+
+const endInput   = document.getElementById('end-date-input');
+const scenSelect = document.getElementById('scenario-select');
+const daysPill   = document.getElementById('days-pill');
+const scenPill   = document.getElementById('scenario-pill');
+
+endInput.value = _lastDay;
+endInput.min   = DATA_DATE;
+
+const SCEN_LABELS = { '1.2': 'Optimista', '1.0': 'Base', '0.8': 'Conservador' };
+const SCEN_COLORS = { '1.2': '#10b981',   '1.0': '#4D7CC7', '0.8': '#d97706' };
+
+const calcDays = () => {
+  const start = new Date(DATA_DATE);
+  const end   = new Date(endInput.value);
+  return Math.max(1, Math.round((end - start) / 86400000) + 1);
+};
+
+const update = () => {
+  const days = calcDays();
+  const mult = parseFloat(scenSelect.value) || 1;
+  daysPill.textContent      = `${days} días proyectados`;
+  scenPill.textContent      = SCEN_LABELS[scenSelect.value] || 'Base';
+  scenPill.style.background = SCEN_COLORS[scenSelect.value] || '#4D7CC7';
+  renderAll(days, mult);
+};
+
+endInput.addEventListener('change', update);
+scenSelect.addEventListener('change', update);
+update();
+</script>
+</body>
+</html>

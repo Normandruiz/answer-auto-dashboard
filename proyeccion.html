@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Answer Seguros — Proyección de Campañas Auto</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+body { background: linear-gradient(180deg, #ffffff 0%, #f0f3f8 100%); background-attachment: fixed; color: #2B2B2B; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.5; padding: 24px; min-height: 100vh; }
+.container { max-width: 1440px; margin: 0 auto; }
+
+header.hero { background: #ffffff; padding: 24px 32px; border-radius: 16px; border: 1px solid #e5e9f0; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,51,160,.06); border-top: 4px solid; border-image: linear-gradient(90deg, #0033A0, #10b981) 1; }
+header.hero .brand-row { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-bottom: 16px; }
+header.hero .brand-row .logo { height: 64px; width: auto; max-width: 240px; object-fit: contain; }
+header.hero .title-block { flex: 1; text-align: center; }
+header.hero h1 { font-size: 28px; background: linear-gradient(90deg, #0033A0, #10b981); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 6px; font-weight: 800; }
+header.hero .sub { color: #6A6A6A; font-size: 13px; }
+header.hero .meta-row { display: flex; gap: 24px; justify-content: center; flex-wrap: wrap; font-size: 13px; color: #808285; padding-top: 14px; border-top: 1px solid #f0f3f8; }
+header.hero .meta-row strong { color: #2B2B2B; font-weight: 600; }
+@media (max-width: 720px) { header.hero .brand-row { flex-direction: column; gap: 12px; } header.hero h1 { font-size: 22px; } }
+
+.nav-links { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
+.back-btn { display: inline-flex; align-items: center; gap: 8px; background: #f0f3f8; border: 1px solid #e5e9f0; color: #0033A0; font-weight: 600; font-size: 13px; padding: 10px 18px; border-radius: 8px; text-decoration: none; transition: all .15s; }
+.back-btn:hover { background: #e5e9f0; border-color: #4D7CC7; }
+
+.controls-bar { display: flex; gap: 20px; flex-wrap: wrap; align-items: center; background: #ffffff; border: 1px solid #e5e9f0; border-radius: 12px; padding: 18px 24px; margin-bottom: 24px; box-shadow: 0 1px 3px rgba(0,51,160,.04); border-left: 4px solid #10b981; }
+.ctrl-group { display: flex; flex-direction: column; gap: 4px; }
+.ctrl-label { font-size: 11px; color: #808285; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; }
+.ctrl-value { font-size: 15px; font-weight: 700; color: #2B2B2B; }
+.ctrl-sep { font-size: 22px; color: #d1d5db; margin-top: 8px; }
+.date-picker { border: 1.5px solid #e5e9f0; border-radius: 8px; padding: 9px 13px; font-size: 14px; font-weight: 600; color: #2B2B2B; background: #f8fafd; outline: none; cursor: pointer; transition: border-color .15s, box-shadow .15s; }
+.date-picker:focus { border-color: #10b981; box-shadow: 0 0 0 3px rgba(16,185,129,.15); }
+.days-pill { background: linear-gradient(90deg,#0033A0,#4D7CC7); color: #fff; font-size: 13px; font-weight: 700; padding: 10px 18px; border-radius: 8px; white-space: nowrap; }
+.ctrl-vdiv { width: 1px; background: #e5e9f0; align-self: stretch; margin: 0 4px; }
+.scenario-select { border: 1.5px solid #e5e9f0; border-radius: 8px; padding: 9px 13px; font-size: 13px; font-weight: 600; color: #2B2B2B; background: #f8fafd; outline: none; cursor: pointer; transition: border-color .15s; }
+.scenario-select:focus { border-color: #10b981; }
+.scenario-pill { font-size: 12px; font-weight: 700; padding: 8px 14px; border-radius: 8px; color: #fff; transition: background .2s; }
+.ctrl-note { font-size: 11px; color: #808285; margin-left: auto; max-width: 200px; line-height: 1.4; }
+
+.kpi-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 16px; margin-bottom: 24px; }
+.kpi-card { background: #ffffff; border: 1px solid #e5e9f0; border-radius: 12px; padding: 20px; border-left: 4px solid #0033A0; box-shadow: 0 1px 3px rgba(0,51,160,.04); }
+.kpi-card .label { font-size: 11px; color: #808285; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; font-weight: 600; }
+.kpi-card .value { font-size: 24px; font-weight: 700; color: #2B2B2B; }
+.kpi-card .sub { font-size: 11px; color: #808285; margin-top: 4px; }
+.kpi-card.blue   { border-left-color: #0033A0; } .kpi-card.blue   .value { color: #0033A0; }
+.kpi-card.orange { border-left-color: #FA6400; } .kpi-card.orange .value { color: #FA6400; }
+.kpi-card.green  { border-left-color: #10b981; } .kpi-card.green  .value { color: #10b981; }
+.kpi-card.mid    { border-left-color: #4D7CC7; } .kpi-card.mid    .value { color: #4D7CC7; }
+
+.section { background: #ffffff; border: 1px solid #e5e9f0; border-radius: 12px; padding: 24px; margin-bottom: 24px; box-shadow: 0 1px 3px rgba(0,51,160,.04); }
+.section h2 { font-size: 18px; margin-bottom: 16px; color: #2B2B2B; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+.section h2 .badge { font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 20px; background: #f0f3f8; color: #6A6A6A; }
+
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th { background: #f0f3f8; color: #6A6A6A; font-weight: 700; padding: 10px 12px; text-align: left; border-bottom: 1px solid #e5e9f0; font-size: 11px; text-transform: uppercase; letter-spacing: 0.3px; white-space: nowrap; }
+th.num, td.num { text-align: right; font-variant-numeric: tabular-nums; }
+th.proj-col { background: rgba(16,185,129,.1); color: #059669; }
+td { padding: 10px 12px; border-bottom: 1px solid #f0f3f8; color: #2B2B2B; }
+tr:hover td { background: #fafbfd; }
+td.blue    { color: #0033A0; font-weight: 600; }
+td.orange  { color: #FA6400; font-weight: 600; }
+td.green   { color: #10b981; font-weight: 600; }
+td.warning { color: #ef4444; font-weight: 700; }
+td.good    { color: #10b981; font-weight: 700; }
+td.muted   { color: #808285; }
+td.proj-blue   { color: #0033A0; font-weight: 700; }
+td.proj-orange { color: #FA6400; font-weight: 700; }
+td.proj-green  { color: #10b981; font-weight: 700; }
+td.total-row { background: #f0f3f8 !important; font-weight: 700; border-top: 2px solid #e5e9f0; }
+
+.badge-source { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 20px; white-space: nowrap; }
+.badge-source.google { background: rgba(0,51,160,.1); color: #0033A0; }
+.badge-source.meta   { background: rgba(250,100,0,.12); color: #FA6400; }
+.badge-tipo { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 4px; background: #f0f3f8; color: #6A6A6A; white-space: nowrap; }
+.badge-tipo.search { background: rgba(0,51,160,.08); color: #0033A0; }
+.badge-tipo.pmax   { background: rgba(77,124,199,.12); color: #4D7CC7; }
+.badge-tipo.dgen   { background: rgba(16,185,129,.1); color: #10b981; }
+.badge-tipo.conv   { background: rgba(250,100,0,.1); color: #FA6400; }
+.badge-tipo.test   { background: rgba(168,67,8,.1); color: #A84308; }
+
+.prob-badge { display: inline-flex; align-items: center; gap: 5px; font-size: 10px; font-weight: 700; padding: 3px 9px; border-radius: 20px; white-space: nowrap; }
+.prob-badge.alta  { background: rgba(16,185,129,.12);  color: #059669; }
+.prob-badge.buena { background: rgba(20,184,166,.12);  color: #0d9488; }
+.prob-badge.media { background: rgba(245,158,11,.12);  color: #d97706; }
+.prob-badge.baja  { background: rgba(239,68,68,.12);   color: #ef4444; }
+
+.plat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px; }
+.mini-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.mini-stat { background: #f8fafd; border: 1px solid #f0f3f8; border-radius: 8px; padding: 14px 16px; }
+.mini-stat .m-label { font-size: 11px; color: #808285; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 4px; }
+.mini-stat .m-val   { font-size: 20px; font-weight: 700; color: #2B2B2B; }
+.mini-stat .m-val.blue   { color: #0033A0; }
+.mini-stat .m-val.orange { color: #FA6400; }
+.mini-stat .m-val.green  { color: #10b981; }
+
+.chart-row { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px; }
+.chart-box { background: #ffffff; border: 1px solid #e5e9f0; border-radius: 12px; padding: 24px; box-shadow: 0 1px 3px rgba(0,51,160,.04); }
+.chart-box h3 { margin-bottom: 16px; color: #2B2B2B; font-size: 15px; font-weight: 700; }
+
+footer { text-align: center; padding: 24px; color: #808285; font-size: 12px; }
+
+@media (max-width: 1200px) { .kpi-grid { grid-template-columns: repeat(3,1fr); } .chart-row { grid-template-columns: 1fr; } .plat-grid { grid-template-columns: 1fr; } }
+@media (max-width: 640px)  { .kpi-grid { grid-template-columns: 1fr 1fr; } .controls-bar { flex-direction: column; align-items: flex-start; } .ctrl-note { margin-left: 0; } }
+@media print { body { background: #fff !important; } .nav-links, .controls-bar { display: none; } }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header class="hero">
+    <div class="brand-row">
+      <img src="assets/logo-answer.png" alt="Answer Galicia Seguros" class="logo" onerror="this.style.visibility='hidden'">
+      <div class="title-block">
+        <h1>Dashboard Proyección — Campañas Auto</h1>
+        <div class="sub">GOOGLE ADS + META ADS · Proyección lineal basada en tasa diaria · Cotas, Solas y Probabilidad de Cierre</div>
+      </div>
+      <img src="assets/logo-beyond.png" alt="Beyond" class="logo" onerror="this.style.visibility='hidden'">
+    </div>
+    <div class="meta-row">
+      <span>Generado: <strong id="generated-at"></strong></span>
+      <span>Datos desde: <strong id="data-date-display"></strong></span>
+      <span>Fuente: <strong>Google Ads · Meta Ads · CRM (Cotas/Solas)</strong></span>
+    </div>
+  </header>
+
+  <div class="nav-links">
+    <a href="index.html" class="back-btn">
+      <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+      Dashboard Principal
+    </a>
+    <a href="cotas-solas.html" class="back-btn">
+      <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+      Cotas / Solas
+    </a>
+    <a href="cross.html" class="back-btn">
+      <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12M8 12h12M8 17h12M4 7h.01M4 12h.01M4 17h.01"/></svg>
+      Cross
+    </a>
+  </div>
+
+  <!-- Barra de controles -->
+  <div class="controls-bar">
+    <div class="ctrl-group">
+      <div class="ctrl-label">Datos de</div>
+      <div class="ctrl-value" id="data-date-val">—</div>
+    </div>
+    <div class="ctrl-sep">→</div>
+    <div class="ctrl-group">
+      <div class="ctrl-label">Proyectar hasta</div>
+      <input type="date" id="end-date-input" class="date-picker">
+    </div>
+    <div class="days-pill" id="days-pill">— días</div>
+    <div class="ctrl-vdiv"></div>
+    <div class="ctrl-group">
+      <div class="ctrl-label">Escenario</div>
+      <select id="scenario-select" class="scenario-select">
+        <option value="1.2">Optimista (+20%)</option>
+        <option value="1.0" selected>Base (tasa actual)</option>
+        <option value="0.8">Conservador (−20%)</option>
+      </select>
+    </div>
+    <div class="scenario-pill" id="scenario-pill">Base</div>
+    <div class="ctrl-note">
+      Proyección lineal: tasa diaria × días seleccionados. El escenario ajusta el rendimiento esperado.
+    </div>
+  </div>
+
+  <!-- KPIs -->
+  <div class="kpi-grid" id="kpi-grid"></div>
+
+  <!-- Tabla principal -->
+  <div class="section">
+    <h2>
+      <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"/></svg>
+      Proyección por Campaña
+      <span class="badge" id="table-badge">— campañas</span>
+    </h2>
+    <div style="overflow-x:auto">
+      <table id="proj-table"><thead></thead><tbody></tbody></table>
+    </div>
+    <div style="font-size:11px;color:#808285;margin-top:10px;line-height:1.5">
+      * <strong>Columnas resaltadas en verde</strong> = valores proyectados al período seleccionado. Columnas en gris = tasa diaria base.
+      <br>* <strong>Capture%</strong> = Cotas CRM / Conversiones plataforma (indica calidad de atribución).
+      <br>* <strong>Prob. Cierre</strong> = Conv% (Solas/Cotas) usado como probabilidad de emisión de póliza.
+    </div>
+  </div>
+
+  <!-- Resumen por plataforma -->
+  <div class="plat-grid">
+    <div class="section">
+      <h2>
+        <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path stroke-linecap="round" stroke-linejoin="round" d="M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>
+        Google Ads
+        <span class="badge">Auto</span>
+      </h2>
+      <div class="mini-stats" id="google-summary"></div>
+    </div>
+    <div class="section">
+      <h2>
+        <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/></svg>
+        Meta Ads
+        <span class="badge">Auto</span>
+      </h2>
+      <div class="mini-stats" id="meta-summary"></div>
+    </div>
+  </div>
+
+  <!-- Gráficos -->
+  <div class="chart-row">
+    <div class="chart-box">
+      <h3>
+        Cotas proyectadas por campaña
+        <span style="font-size:11px;font-weight:400;color:#808285;margin-left:8px">· <span style="background:rgba(0,51,160,.08);padding:2px 7px;border-radius:4px;color:#0033A0;font-weight:600;font-size:11px">Google</span> · <span style="background:rgba(250,100,0,.12);padding:2px 7px;border-radius:4px;color:#FA6400;font-weight:600;font-size:11px">Meta</span></span>
+      </h3>
+      <canvas id="chart-cotas"></canvas>
+    </div>
+    <div class="chart-box">
+      <h3>
+        Solas proyectadas por campaña
+        <span style="font-size:11px;font-weight:400;color:#808285;margin-left:8px">· <span style="background:rgba(0,51,160,.08);padding:2px 7px;border-radius:4px;color:#0033A0;font-weight:600;font-size:11px">Google</span> · <span style="background:rgba(250,100,0,.12);padding:2px 7px;border-radius:4px;color:#FA6400;font-weight:600;font-size:11px">Meta</span></span>
+      </h3>
+      <canvas id="chart-solas"></canvas>
+    </div>
+  </div>
+
+  <footer>
+    <div>Fuentes: Google Ads · Meta Ads · CRM (Base Cotas · Base Solas) · Moneda: ARS</div>
+    <div style="margin-top:6px">Answer Seguros · Grupo Galicia · Dashboard autogenerado</div>
+  </footer>
+
+</div>
+
+<script id="dashboard-data" type="application/json">{"generated_at":"2026-04-22T14:30:00.000Z","date_range":{"from":"2026-04-01","to":"2026-04-21","label":"Abril 2026 — MTD al 21","ayer":"2026-04-21"},"google_ads":[{"campaign":"DemandGen - Auto - Similares","status":"Entidad apta (limitada)","spend":3551847.92,"conversions":14.87,"cpa":238859.31,"impressions":8131535,"clicks":320419,"ayer_spend":177041.9,"ayer_conversions":0,"ayer_results":null,"ayer_cpa":0,"ayer_cpr":null},{"campaign":"MaxPerformance - Auto - Segment","status":"Entidad apta (limitada)","spend":18033241.62,"conversions":1036.98,"cpa":17390.42,"impressions":1624092,"clicks":18360,"ayer_spend":965328.36,"ayer_conversions":64.97,"ayer_results":null,"ayer_cpa":14857.26,"ayer_cpr":null},{"campaign":"Search - Auto - Segment - BA (simplificada)","status":"Entidad apta (limitada)","spend":45070421.5,"conversions":2113.94,"cpa":21322.55,"impressions":260522,"clicks":14536,"ayer_spend":2181780,"ayer_conversions":99.94,"ayer_results":null,"ayer_cpa":21830.6,"ayer_cpr":null},{"campaign":"Search - Auto - Segment - INT","status":"Entidad apta (limitada)","spend":18026528.41,"conversions":998.99,"cpa":18044.61,"impressions":161265,"clicks":8286,"ayer_spend":872500,"ayer_conversions":48.99,"ayer_results":null,"ayer_cpa":17810.98,"ayer_cpr":null},{"campaign":"DemandGen - Auto - Remarketing","status":"En pausa","spend":707863.14,"conversions":14.95,"cpa":47349.37,"impressions":73371,"clicks":1178,"ayer_spend":0,"ayer_conversions":0,"ayer_results":null,"ayer_cpa":0,"ayer_cpr":null},{"campaign":"Search - Auto - Segment - BA (test a/b)","status":"Entidad apta (limitada)","spend":5348332.05,"conversions":288.96,"cpa":18506.56,"impressions":45694,"clicks":1914,"ayer_spend":258840,"ayer_conversions":15.96,"ayer_results":null,"ayer_cpa":16217.42,"ayer_cpr":null},{"campaign":"Search - Auto - Retention","status":"Apto","spend":5016808.54,"conversions":113.99,"cpa":44010.6,"impressions":16121,"clicks":3583,"ayer_spend":242900,"ayer_conversions":2.99,"ayer_results":null,"ayer_cpa":81237.46,"ayer_cpr":null},{"campaign":"Search - Movilidad - Segment  - AR","status":"Apto","spend":214862.75,"conversions":1,"cpa":214862.75,"impressions":3240,"clicks":224,"ayer_spend":10398.21,"ayer_conversions":0,"ayer_results":null,"ayer_cpa":0,"ayer_cpr":null}],"meta_ads":[{"campaign":"Conversiones - Auto - AO","status":"Activa","spend":8009472.51,"results":1463,"conversions":1463,"cpa":5474.35,"impressions":2811325,"clicks":12932,"ayer_spend":385326.26,"ayer_conversions":71,"ayer_results":71,"ayer_cpa":5427.13,"ayer_cpr":5427.13},{"campaign":"Conversiones - Auto - AO - (A/B test)","status":"Activa","spend":4562732.47,"results":1203,"conversions":1203,"cpa":3793.21,"impressions":1649265,"clicks":58771,"ayer_spend":224004.49,"ayer_conversions":42,"ayer_results":42,"ayer_cpa":5333.44,"ayer_cpr":5333.44},{"campaign":"Conversiones - Auto - AO (checkout)","status":"Activa","spend":4192443.24,"results":299,"conversions":299,"cpa":14020.88,"impressions":664913,"clicks":11581,"ayer_spend":252507.98,"ayer_conversions":40,"ayer_results":40,"ayer_cpa":6312.7,"ayer_cpr":6312.7},{"campaign":"Trafico - Celu - AR","status":"Activa","spend":557842.46,"results":6622,"conversions":6622,"cpa":84.24,"impressions":679532,"clicks":13108,"ayer_spend":24323.21,"ayer_conversions":209,"ayer_results":209,"ayer_cpa":116.38,"ayer_cpr":116.38},{"campaign":"Conversiones - Hogar - AO","status":"Activa","spend":465504.19,"results":33,"conversions":33,"cpa":14106.19,"impressions":87598,"clicks":623,"ayer_spend":37139.92,"ayer_conversions":2,"ayer_results":2,"ayer_cpa":18569.96,"ayer_cpr":18569.96},{"campaign":"Trafico - AP - AO (crossell)","status":"Activa","spend":237573.34,"results":877,"conversions":877,"cpa":271.01,"impressions":119086,"clicks":1830,"ayer_spend":10841.67,"ayer_conversions":42,"ayer_results":42,"ayer_cpa":258.14,"ayer_cpr":258.14},{"campaign":"Trafico - Bolso - AR","status":"Activa","spend":226027.4,"results":4727,"conversions":4727,"cpa":47.81,"impressions":190166,"clicks":6195,"ayer_spend":10559.75,"ayer_conversions":241,"ayer_results":241,"ayer_cpa":43.82,"ayer_cpr":43.82},{"campaign":"Mensajes - Hogar- AO","status":"Activa","spend":215118.08,"results":127,"conversions":127,"cpa":1693.84,"impressions":30479,"clicks":338,"ayer_spend":10816.05,"ayer_conversions":6,"ayer_results":6,"ayer_cpa":1802.68,"ayer_cpr":1802.68},{"campaign":"Conversiones - Hogar - AO - (crossell)","status":"Activa","spend":212388.42,"results":3,"conversions":3,"cpa":70796.14,"impressions":36486,"clicks":864,"ayer_spend":9763.85,"ayer_conversions":1,"ayer_results":1,"ayer_cpa":9763.85,"ayer_cpr":9763.85},{"campaign":"Trafico - Alianza Pax - (asistencia al viajero) - V2","status":"Activa","spend":168194.05,"results":1302,"conversions":1302,"cpa":129.18,"impressions":91980,"clicks":4389,"ayer_spend":9889.66,"ayer_conversions":58,"ayer_results":58,"ayer_cpa":170.51,"ayer_cpr":170.51},{"campaign":"Mensajes - Movilidad - AO","status":"Activa","spend":3780.66,"results":3,"conversions":3,"cpa":1260.22,"impressions":791,"clicks":8,"ayer_spend":3780.66,"ayer_conversions":3,"ayer_results":3,"ayer_cpa":1260.22,"ayer_cpr":1260.22}],"google_ads_ayer":[{"campaign":"DemandGen - Auto - Similares","status":"Entidad apta (limitada)","spend":177041.9,"conversions":0,"cpa":0,"impressions":403617,"clicks":15685},{"campaign":"MaxPerformance - Auto - Segment","status":"Entidad apta (limitada)","spend":965328.36,"conversions":64.97,"cpa":14857.26,"impressions":80649,"clicks":955},{"campaign":"Search - Auto - Segment - BA (simplificada)","status":"Entidad apta (limitada)","spend":2181780,"conversions":99.94,"cpa":21830.6,"impressions":19362,"clicks":794},{"campaign":"Search - Auto - Segment - INT","status":"Entidad apta (limitada)","spend":872500,"conversions":48.99,"cpa":17810.98,"impressions":7743,"clicks":318},{"campaign":"Search - Auto - Segment - BA (test a/b)","status":"Entidad apta (limitada)","spend":258840,"conversions":15.96,"cpa":16217.42,"impressions":2297,"clicks":94},{"campaign":"Search - Auto - Retention","status":"Apto","spend":242900,"conversions":2.99,"cpa":81237.46,"impressions":2155,"clicks":88},{"campaign":"Search - Movilidad - Segment  - AR","status":"Apto","spend":10398.21,"conversions":0,"cpa":0,"impressions":92,"clicks":4}],"meta_ads_ayer":[{"campaign":"Conversiones - Auto - AO","status":"Activa","spend":385326.26,"results":71,"conversions":71,"cpa":5427.13},{"campaign":"Conversiones - Auto - AO - (A/B test)","status":"Activa","spend":224004.49,"results":42,"conversions":42,"cpa":5333.44},{"campaign":"Conversiones - Auto - AO (checkout)","status":"Activa","spend":252507.98,"results":40,"conversions":40,"cpa":6312.7},{"campaign":"Trafico - Celu - AR","status":"Activa","spend":24323.21,"results":209,"conversions":209,"cpa":116.38},{"campaign":"Conversiones - Hogar - AO","status":"Activa","spend":37139.92,"results":2,"conversions":2,"cpa":18569.96},{"campaign":"Trafico - AP - AO (crossell)","status":"Activa","spend":10841.67,"results":42,"conversions":42,"cpa":258.14},{"campaign":"Trafico - Bolso - AR","status":"Activa","spend":10559.75,"results":241,"conversions":241,"cpa":43.82},{"campaign":"Trafico - Alianza Pax - (asistencia al viajero) - V2","status":"Activa","spend":9889.66,"results":58,"conversions":58,"cpa":170.51},{"campaign":"Mensajes - Hogar- AO","status":"Activa","spend":10816.05,"results":6,"conversions":6,"cpa":1802.68},{"campaign":"Conversiones - Hogar - AO - (crossell)","status":"Activa","spend":9763.85,"results":1,"conversions":1,"cpa":9763.85},{"campaign":"Mensajes - Movilidad - AO","status":"Activa","spend":3780.66,"results":3,"conversions":3,"cpa":1260.22}],"cotas":{"total":7604,"ayer":0,"by_campaign_code":{"8508":{"campaign":"ANSWER_ECOMMERCE_25_mensual","plataforma":"Orgánico","cotas":1050},"8734":{"campaign":"Emblue_Email_AutoWinbank_50X3_NA","plataforma":"Own media","cotas":1},"8741":{"campaign":"MGM_25X12meses","plataforma":"Own media","cotas":14},"8753":{"campaign":"Emblue_Email_RMKT_50x3","plataforma":"Own media","cotas":77},"8758":{"campaign":"Google_Search_AutoSegmentBA_25x6_NA","plataforma":"Search - Auto - Segment - BA (simplificada)","cotas":606},"8761":{"campaign":"Google_Search_AutoSegmentInt_50x3_NA","plataforma":"Search - Auto - Segment - INT","cotas":927},"8768":{"campaign":"Google_Search_AutoRetention_50x3_NA","plataforma":"Search - Auto - Retention","cotas":615},"8770":{"campaign":"Google_DemandGen_AutoCupon_25x6_NA","plataforma":"DemandGen - Auto - Similares","cotas":1},"8772":{"campaign":"Google_PerformanceMax_AutoSegment_25x6_NA","plataforma":"MaxPerformance - Auto - Segment","cotas":374},"8778":{"campaign":"WebGS_organico_Auto_25x6_NA","plataforma":"Orgánico","cotas":227},"8785":{"campaign":"Chat_WhatsApp_Auto_25x6_NA","plataforma":"Own Media","cotas":63},"8786":{"campaign":"META_organico_Auto_25x6_NA","plataforma":"Meta","cotas":8},"8788":{"campaign":"Google_Search_AutoSegmentBA_25x6_Test_NA","plataforma":"Search - Auto - Segment - BA (simplificada)","cotas":717},"8790":{"campaign":"Google_DemandGen_AutoRmkt_50x3_NA","plataforma":"DemandGen - Auto - Similares","cotas":19},"8803":{"campaign":"Whatsapp_RMKT_AUTO_50X3_NA","plataforma":"Own Media","cotas":3},"8807":{"campaign":"DV360_Display_Auto_25x6_NA","plataforma":"DV","cotas":1},"8809":{"campaign":"Meta_Conversiones_AutoOptiCheckout_50x3_NA","plataforma":"Conversiones - Auto - AO (checkout)","cotas":1},"8885":{"campaign":"Web_Ecommerce_0KM_40X6_organico","plataforma":"Orgánico","cotas":18},"8886":{"campaign":"Web_Ecommerce_1A6AÑOS_30X6_organica","plataforma":"Orgánico","cotas":74},"8924":{"campaign":"Whatsapp_RMKT_50X3_Manual","plataforma":"Own Media","cotas":250},"8934":{"campaign":"Google_Provincia_Localidad_Auto_25x6_Prueba","plataforma":"Search - Auto - Segment - BA (test a/b)","cotas":270},"8945":{"campaign":"Meta_Conversiones_AutoAO_AnswerWeek_Auto_50x6","plataforma":"Conversiones - Auto - AO","cotas":40},"8952":{"campaign":"Meta_Conversiones_AutoOptiCheckout_AnswerWeek_Auto_50x6","plataforma":"Conversiones - Auto - AO (checkout)","cotas":85},"8953":{"campaign":"Meta_Conversiones_AutoABTest_AnswerWeek_Auto_50x6","plataforma":"Conversiones - Auto - AO - (A/B test)","cotas":7},"8967":{"campaign":"Whatsapp_RMKT_30X3_AUTO_AO","plataforma":"Own Media","cotas":4},"8996":{"campaign":"Meta_Conversiones_AutoAO_40x6_0KM_AUTO_AO","plataforma":"Conversiones - Auto - AO","cotas":1},"9001":{"campaign":"Meta_InfluencerLucas_Auto_50x3","plataforma":"Conversiones - Auto - AO","cotas":361},"9006":{"campaign":"Meta_Conversiones_AutoAO_40x6_0KM_AUTO_AO","plataforma":"Conversiones - Auto - AO","cotas":85},"9007":{"campaign":"Meta_Conversiones_AutoABTest_40x6_0KM_AUTO_AO","plataforma":"Conversiones - Auto - AO - (A/B test)","cotas":8},"9021":{"campaign":"Meta_InfluencerMujeres_Auto_50x3","plataforma":"Meta","cotas":587},"9024":{"campaign":"Google_PerformanceMax_AutoSegment_30x4_Auto_Mundial","plataforma":"Google","cotas":403},"9026":{"campaign":"Whatsapp_RMKT_30X4_Auto_Mundial","plataforma":"Own Media","cotas":24},"9027":{"campaign":"Emblue_Email_RMKT_30x4_Auto_Mundial","plataforma":"Own Media","cotas":1},"9031":{"campaign":"Meta_Conversiones_AutoOptiCheckout_30X4_Auto_Mundial","plataforma":"Meta","cotas":82},"9032":{"campaign":"Meta_Conversiones_AutoABTest_30X4_Auto_Mundial","plataforma":"Meta","cotas":36},"9033":{"campaign":"Meta_Conversiones_AutoAO_30X4_Auto_Mundial","plataforma":"Meta","cotas":112},"9037":{"campaign":"Meta_Conversiones_AutoAO_0X0_Auto_NuevaTarifaSinDescuento","plataforma":"Meta","cotas":2},"9041":{"campaign":"Whatsapp_RMKT_0X0_Auto_NuevaTarifaSinDescuento","plataforma":"Own Media","cotas":23},"9042":{"campaign":"Google_Search_AutoSegmentBA_0x0_Auto_NuevaTarifaSinDescuento","plataforma":"Google","cotas":395},"9050":{"campaign":"GPAT_25x12_rmk_emblue","plataforma":"Own Media","cotas":2},"9051":{"campaign":"strix_50x3_rmk_emblue","plataforma":"Own Media","cotas":4},"9052":{"campaign":"strix_50x3_rmk_wpp","plataforma":"Own Media","cotas":14},"9053":{"campaign":"GPAT_25x12_rmk_wpp","plataforma":"Own Media","cotas":1}},"platform_codes":{"Search - Auto - Segment - BA (simplificada)":["8758","8788"],"Search - Auto - Segment - BA (test a/b)":["8934"],"Own Media":["8784","8785","8798","8803","8923","8924","8938","8942","8963","8967","8986","9005","9010","9011","9015","9016","9026","9027","9041","9050","9051","9052","9053"],"Orgánico":["8508","8778","8873","8885","8886"],"Meta":["8786","9021","9031","9032","9033","9037"],"Search - Auto - Retention":["8768","8769"],"Search - Auto - Segment - INT":["8761"],"Conversiones - Auto - AO":["8773","8936","8945","8962","8974","8975","8996","9001","9003","9006","9014"],"MaxPerformance - Auto - Segment":["8772","8965","9017"],"Google":["8941","9024","9025","9042"],"DemandGen - Auto - Similares":["8770","8790","8966","9018"],"DV":["8807"],"Conversiones - Auto - AO - (A/B test)":["8903","8953","8959","8961","9007","9013"],"Own media":["8734","8741","8751","8752","8753","8964"],"Sin plataforma":[],"Conversiones - Auto - AO (checkout)":["8756","8809","8952","8960","9009","9012"],"Uber":[],"Alianza":["8805","8887","8929","8939","9023"],"Otros":[]},"by_platform":{"Search - Auto - Segment - BA (simplificada)":1323,"Search - Auto - Segment - BA (test a/b)":270,"Own Media":389,"Orgánico":1369,"Meta":827,"Search - Auto - Retention":615,"Search - Auto - Segment - INT":927,"Conversiones - Auto - AO":487,"MaxPerformance - Auto - Segment":374,"Google":798,"DemandGen - Auto - Similares":20,"DV":1,"Conversiones - Auto - AO - (A/B test)":15,"Own media":92,"Sin plataforma":11,"Conversiones - Auto - AO (checkout)":86},"daily":{"2026-01-01":257,"2026-01-02":554,"2026-01-03":309,"2026-01-04":342,"2026-01-05":465,"2026-01-06":549,"2026-01-07":484,"2026-01-08":410,"2026-01-09":435,"2026-01-10":392,"2026-01-11":293,"2026-01-12":474,"2026-01-13":497,"2026-01-14":479,"2026-01-15":604,"2026-01-16":447,"2026-01-17":373,"2026-01-18":308,"2026-01-19":500,"2026-01-20":594,"2026-01-21":512,"2026-01-22":565,"2026-01-23":527,"2026-01-24":378,"2026-01-25":345,"2026-01-26":531,"2026-01-27":470,"2026-01-28":453,"2026-01-29":501,"2026-01-30":505,"2026-01-31":409,"2026-02-01":351,"2026-02-02":448,"2026-02-03":429,"2026-02-04":421,"2026-02-05":436,"2026-02-06":501,"2026-02-07":341,"2026-02-08":332,"2026-02-09":447,"2026-02-10":417,"2026-02-11":475,"2026-02-12":495,"2026-02-13":426,"2026-02-14":316,"2026-02-15":282,"2026-02-16":272,"2026-02-17":318,"2026-02-18":527,"2026-02-19":483,"2026-02-20":466,"2026-02-21":393,"2026-02-22":386,"2026-02-23":554,"2026-02-24":503,"2026-02-25":472,"2026-02-26":261,"2026-02-27":610,"2026-02-28":391,"2026-03-01":432,"2026-03-02":513,"2026-03-03":602,"2026-03-04":608,"2026-03-05":453,"2026-03-06":517,"2026-03-07":387,"2026-03-08":343,"2026-03-09":633,"2026-03-10":468,"2026-03-11":456,"2026-03-12":640,"2026-03-13":641,"2026-03-14":376,"2026-03-15":371,"2026-03-16":485,"2026-03-17":527,"2026-03-18":511,"2026-03-19":472,"2026-03-20":564,"2026-03-21":320,"2026-03-22":310,"2026-03-23":341,"2026-03-24":341,"2026-03-25":488,"2026-03-26":432,"2026-03-27":415,"2026-03-28":319,"2026-03-29":300,"2026-03-30":429,"2026-03-31":421,"2026-04-01":363,"2026-04-02":383,"2026-04-03":365,"2026-04-04":299,"2026-04-05":303,"2026-04-06":459,"2026-04-07":438,"2026-04-08":445,"2026-04-09":467,"2026-04-10":449,"2026-04-11":372,"2026-04-12":373,"2026-04-13":485,"2026-04-14":404,"2026-04-15":481,"2026-04-16":420,"2026-04-17":426,"2026-04-18":363,"2026-04-19":309,"2026-04-20":0,"2026-04-21":0}},"solas":{"total":759,"ayer":0,"by_platform":{"Search - Auto - Retention":71,"Conversiones - Auto - AO":6,"Orgánico":70,"Sin plataforma":209,"Own Media":107,"Otros":140,"Own media":28,"Google":25,"Search - Auto - Segment - BA (simplificada)":16,"Search - Auto - Segment - BA (test a/b)":8,"Conversiones - Auto - AO - (A/B test)":3,"DemandGen - Auto - Similares":7,"Uber":4,"Alianza":17,"DV":2,"Conversiones - Auto - AO (checkout)":9,"MaxPerformance - Auto - Segment":9,"Search - Auto - Segment - INT":16,"Meta":12},"daily":{"2026-01-01":4,"2026-01-02":52,"2026-01-03":12,"2026-01-04":7,"2026-01-05":37,"2026-01-06":36,"2026-01-07":31,"2026-01-08":29,"2026-01-09":34,"2026-01-10":17,"2026-01-11":8,"2026-01-12":36,"2026-01-13":38,"2026-01-14":44,"2026-01-15":30,"2026-01-16":37,"2026-01-17":19,"2026-01-18":7,"2026-01-19":37,"2026-01-20":34,"2026-01-21":42,"2026-01-22":37,"2026-01-23":50,"2026-01-24":16,"2026-01-25":6,"2026-01-26":37,"2026-01-27":45,"2026-01-28":37,"2026-01-29":35,"2026-01-30":50,"2026-01-31":24,"2026-02-01":8,"2026-02-02":58,"2026-02-03":43,"2026-02-04":37,"2026-02-05":34,"2026-02-06":37,"2026-02-07":16,"2026-02-08":5,"2026-02-09":28,"2026-02-10":29,"2026-02-11":44,"2026-02-12":36,"2026-02-13":43,"2026-02-14":12,"2026-02-15":1,"2026-02-16":12,"2026-02-17":18,"2026-02-18":38,"2026-02-19":22,"2026-02-20":39,"2026-02-21":13,"2026-02-22":4,"2026-02-23":37,"2026-02-24":21,"2026-02-25":21,"2026-02-26":16,"2026-02-27":35,"2026-02-28":6,"2026-03-01":16,"2026-03-02":69,"2026-03-03":58,"2026-03-04":67,"2026-03-05":43,"2026-03-06":57,"2026-03-07":23,"2026-03-08":1,"2026-03-09":75,"2026-03-10":54,"2026-03-11":67,"2026-03-12":57,"2026-03-13":69,"2026-03-14":19,"2026-03-15":8,"2026-03-16":64,"2026-03-17":55,"2026-03-18":72,"2026-03-19":55,"2026-03-20":71,"2026-03-21":22,"2026-03-22":6,"2026-03-23":29,"2026-03-24":12,"2026-03-25":52,"2026-03-26":58,"2026-03-27":56,"2026-03-28":10,"2026-03-29":11,"2026-03-30":75,"2026-03-31":52,"2026-04-01":66,"2026-04-02":34,"2026-04-03":17,"2026-04-04":19,"2026-04-05":8,"2026-04-06":57,"2026-04-07":58,"2026-04-08":59,"2026-04-09":60,"2026-04-10":57,"2026-04-11":18,"2026-04-12":5,"2026-04-13":70,"2026-04-14":43,"2026-04-15":57,"2026-04-16":54,"2026-04-17":50,"2026-04-18":20,"2026-04-19":7,"2026-04-20":0,"2026-04-21":0}}}</script>
+
+<script>
+const d = JSON.parse(document.getElementById('dashboard-data').textContent);
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+const fmtInt  = n => (n == null || isNaN(n)) ? '—' : Math.round(n).toLocaleString('es-AR');
+const fmtARS  = n => (n == null || isNaN(n)) ? '—' : '$' + Math.round(n).toLocaleString('es-AR');
+const fmtARSk = n => {
+  if (n == null || isNaN(n)) return '—';
+  if (n >= 1e9) return '$' + (n/1e9).toFixed(2) + 'B';
+  if (n >= 1e6) return '$' + (n/1e6).toFixed(1) + 'M';
+  if (n >= 1e3) return '$' + (n/1e3).toFixed(0) + 'K';
+  return '$' + Math.round(n);
+};
+const fmtPct = n => (n == null || isNaN(n)) ? '—' : (n * 100).toFixed(1) + '%';
+
+function campaignType(name) {
+  const n = name.toLowerCase();
+  if (/pmax|performance max/.test(n)) return { label: 'PMax',      cls: 'pmax'   };
+  if (/demand.?gen/.test(n))           return { label: 'DemandGen', cls: 'dgen'   };
+  if (/a\/b.?test|test/.test(n))       return { label: 'A/B Test',  cls: 'test'   };
+  if (/search/.test(n))                return { label: 'Search',    cls: 'search' };
+  if (/conversiones|conv/.test(n))     return { label: 'Conv',      cls: 'conv'   };
+  return { label: 'Otro', cls: '' };
+}
+
+function probInfo(conv) {
+  if (conv == null) return null;
+  if (conv >= 0.15) return { label: 'Alta',  cls: 'alta',  text: 'Excelente' };
+  if (conv >= 0.10) return { label: 'Buena', cls: 'buena', text: 'Sobre promedio' };
+  if (conv >= 0.05) return { label: 'Media', cls: 'media', text: 'Normal' };
+  return               { label: 'Baja',  cls: 'baja',  text: 'A mejorar' };
+}
+
+// ─── Datos base (tasa diaria) ─────────────────────────────────────────────────
+const EXCLUDE_CAMP = 'Search - Movilidad - Segment  - AR';
+const GA_AUTO   = (d.google_ads || []).filter(c => /auto/i.test(c.campaign) && c.campaign !== EXCLUDE_CAMP);
+const META_AUTO = (d.meta_ads   || []).filter(c => /auto/i.test(c.campaign));
+
+function buildBaseRows() {
+  const cotasP = d.cotas?.by_platform || {};
+  const solasP = d.solas?.by_platform || {};
+  const rows   = [];
+
+  const process = (camps, source) => {
+    for (const camp of camps) {
+      const dailySpend = camp.spend  || 0;
+      const dailyConv  = camp.conversions || camp.results || 0;
+      const dailyCotas = cotasP[camp.campaign] || 0;
+      const dailySolas = solasP[camp.campaign] || 0;
+      rows.push({
+        source, campaign: camp.campaign,
+        tipo: campaignType(camp.campaign),
+        dailySpend, dailyConv, dailyCotas, dailySolas,
+        captureRate: dailyConv  > 0 ? dailyCotas / dailyConv  : null,
+        convRate:    dailyCotas > 0 ? dailySolas / dailyCotas : null
+      });
+    }
+  };
+  process(GA_AUTO,   'Google');
+  process(META_AUTO, 'Meta');
+  rows.sort((a, b) => b.dailyCotas - a.dailyCotas || b.dailySpend - a.dailySpend);
+  return rows;
+}
+
+const BASE_ROWS = buildBaseRows();
+let chartCotas = null, chartSolas = null;
+
+// ─── Render (re-ejecuta en cada cambio) ──────────────────────────────────────
+function renderAll(days, mult) {
+  const rows = BASE_ROWS.map(r => {
+    const pSpend = r.dailySpend * days * mult;
+    const pCotas = r.dailyCotas * days * mult;
+    const pSolas = r.dailySolas * days * mult;
+    return { ...r,
+      pSpend, pConv: r.dailyConv * days * mult,
+      pCotas, pSolas,
+      pCpoSola: pSolas > 0 ? pSpend / pSolas : null
+    };
+  });
+
+  renderKPIs(rows, days);
+  renderTable(rows, days);
+  renderPlatSummary(rows, 'Google', 'google-summary');
+  renderPlatSummary(rows, 'Meta',   'meta-summary');
+  renderCharts(rows);
+}
+
+// KPIs
+function renderKPIs(rows, days) {
+  const tSpend = rows.reduce((s, r) => s + r.pSpend, 0);
+  const tConv  = rows.reduce((s, r) => s + r.pConv,  0);
+  const tCotas = rows.reduce((s, r) => s + r.pCotas, 0);
+  const tSolas = rows.reduce((s, r) => s + r.pSolas, 0);
+  const convR  = tCotas > 0 ? tSolas / tCotas : null;
+  const cpo    = tSolas > 0 ? tSpend / tSolas : null;
+  document.getElementById('kpi-grid').innerHTML = [
+    { label: 'Gasto proyectado',     value: fmtARSk(tSpend),  cls: 'mid',    sub: `${fmtARSk(tSpend/days)}/día × ${days} días` },
+    { label: 'Conv. plataforma',     value: fmtInt(tConv),    cls: 'blue',   sub: `${fmtInt(tConv/days)}/día proyectado` },
+    { label: 'Cotas proyectadas',    value: fmtInt(tCotas),   cls: 'blue',   sub: `${fmtInt(tCotas/days)}/día proyectado` },
+    { label: 'Solas proyectadas',    value: fmtInt(tSolas),   cls: 'orange', sub: `${fmtInt(tSolas/days)}/día proyectado` },
+    { label: 'Prob. cierre (Conv%)', value: fmtPct(convR),    cls: 'green',  sub: 'Solas / Cotas total proyectado' },
+    { label: '$/Sola proyectado',    value: fmtARS(cpo),      cls: 'mid',    sub: 'Gasto total / Solas proyectadas' }
+  ].map(c => `<div class="kpi-card ${c.cls}"><div class="label">${c.label}</div><div class="value">${c.value}</div><div class="sub">${c.sub}</div></div>`).join('');
+}
+
+// Tabla principal
+function renderTable(rows, days) {
+  document.getElementById('table-badge').textContent = `${rows.length} campañas · ${days} días`;
+
+  const head = `<tr>
+    <th>#</th>
+    <th>Fuente</th>
+    <th style="min-width:200px">Campaña</th>
+    <th>Tipo</th>
+    <th class="num">$/día</th>
+    <th class="num proj-col">Gasto proy.</th>
+    <th class="num">Conv/día</th>
+    <th class="num proj-col">Conv. proy.</th>
+    <th class="num">Cotas/día</th>
+    <th class="num proj-col">Cotas proy.</th>
+    <th class="num">Capture%</th>
+    <th class="num">Solas/día</th>
+    <th class="num proj-col">Solas proy.</th>
+    <th class="num">Prob. Cierre</th>
+    <th class="num proj-col">$/Sola proy.</th>
+  </tr>`;
+
+  const body = rows.map((r, i) => {
+    const srcCls = r.source === 'Google' ? 'google' : 'meta';
+    const prob   = probInfo(r.convRate);
+    const capCls = r.captureRate != null ? (r.captureRate > 0.65 ? 'good' : r.captureRate < 0.3 ? 'warning' : '') : '';
+    return `<tr>
+      <td class="muted">${i + 1}</td>
+      <td><span class="badge-source ${srcCls}">${r.source}</span></td>
+      <td style="font-size:12px;font-weight:600;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.campaign}">${r.campaign}</td>
+      <td><span class="badge-tipo ${r.tipo.cls}">${r.tipo.label}</span></td>
+      <td class="num muted">${fmtARSk(r.dailySpend)}</td>
+      <td class="num proj-blue">${fmtARSk(r.pSpend)}</td>
+      <td class="num muted">${fmtInt(r.dailyConv)}</td>
+      <td class="num proj-blue">${fmtInt(r.pConv)}</td>
+      <td class="num muted">${fmtInt(r.dailyCotas)}</td>
+      <td class="num proj-blue">${fmtInt(r.pCotas)}</td>
+      <td class="num ${capCls}">${fmtPct(r.captureRate)}</td>
+      <td class="num muted">${fmtInt(r.dailySolas)}</td>
+      <td class="num proj-orange">${fmtInt(r.pSolas)}</td>
+      <td class="num">${prob ? `<span class="prob-badge ${prob.cls}">${prob.label} · ${fmtPct(r.convRate)}</span>` : '—'}</td>
+      <td class="num proj-green">${fmtARS(r.pCpoSola)}</td>
+    </tr>`;
+  }).join('');
+
+  const tSpend = rows.reduce((s,r)=>s+r.pSpend,0);
+  const tConv  = rows.reduce((s,r)=>s+r.pConv,0);
+  const tCotas = rows.reduce((s,r)=>s+r.pCotas,0);
+  const tSolas = rows.reduce((s,r)=>s+r.pSolas,0);
+  const footer = `<tr>
+    <td colspan="4" class="total-row">TOTAL (${rows.length} campañas · ${days} días)</td>
+    <td class="num total-row muted">${fmtARSk(rows.reduce((s,r)=>s+r.dailySpend,0))}</td>
+    <td class="num total-row">${fmtARSk(tSpend)}</td>
+    <td class="num total-row muted">${fmtInt(rows.reduce((s,r)=>s+r.dailyConv,0))}</td>
+    <td class="num total-row">${fmtInt(tConv)}</td>
+    <td class="num total-row muted">${fmtInt(rows.reduce((s,r)=>s+r.dailyCotas,0))}</td>
+    <td class="num total-row">${fmtInt(tCotas)}</td>
+    <td class="num total-row">—</td>
+    <td class="num total-row muted">${fmtInt(rows.reduce((s,r)=>s+r.dailySolas,0))}</td>
+    <td class="num total-row">${fmtInt(tSolas)}</td>
+    <td class="num total-row">${fmtPct(tCotas>0?tSolas/tCotas:null)}</td>
+    <td class="num total-row">${fmtARS(tSolas>0?tSpend/tSolas:null)}</td>
+  </tr>`;
+
+  const t = document.getElementById('proj-table');
+  t.querySelector('thead').innerHTML = head;
+  t.querySelector('tbody').innerHTML = body + footer;
+}
+
+// Resumen por plataforma
+function renderPlatSummary(rows, src, id) {
+  const r  = rows.filter(x => x.source === src);
+  const el = document.getElementById(id);
+  if (!r.length) { el.innerHTML = '<p style="color:#808285;font-size:13px">Sin datos</p>'; return; }
+  const tSpend = r.reduce((s,x)=>s+x.pSpend,0);
+  const tConv  = r.reduce((s,x)=>s+x.pConv,0);
+  const tCotas = r.reduce((s,x)=>s+x.pCotas,0);
+  const tSolas = r.reduce((s,x)=>s+x.pSolas,0);
+  const convR  = tCotas > 0 ? tSolas/tCotas : null;
+  const cpo    = tSolas > 0 ? tSpend/tSolas : null;
+  el.innerHTML = [
+    { label:'Gasto proy.',   val:fmtARSk(tSpend), cls:'' },
+    { label:'Conv. plat.',   val:fmtInt(tConv),   cls:'' },
+    { label:'Cotas proy.',   val:fmtInt(tCotas),  cls:'blue' },
+    { label:'Solas proy.',   val:fmtInt(tSolas),  cls:'orange' },
+    { label:'Prob. cierre',  val:fmtPct(convR),   cls:'green' },
+    { label:'$/Sola proy.',  val:fmtARS(cpo),     cls:'' }
+  ].map(c=>`<div class="mini-stat"><div class="m-label">${c.label}</div><div class="m-val ${c.cls}">${c.val}</div></div>`).join('');
+}
+
+// Gráficos
+function renderCharts(rows) {
+  chartCotas?.destroy?.();
+  chartSolas?.destroy?.();
+  if (!rows.length) return;
+
+  const labels  = rows.map(r => r.campaign.length > 40 ? r.campaign.slice(0,40)+'…' : r.campaign);
+  const colors  = rows.map(r => r.source === 'Google' ? 'rgba(0,51,160,0.75)' : 'rgba(250,100,0,0.75)');
+  const h       = Math.max(300, rows.length * 38);
+
+  const makeChart = (id, data, label) => {
+    const el = document.getElementById(id);
+    el.style.maxHeight = h + 'px';
+    el.parentElement.style.minHeight = (h + 60) + 'px';
+    return new Chart(el, {
+      type: 'bar',
+      data: { labels, datasets: [{ label, data, backgroundColor: colors, borderRadius: 4 }] },
+      options: {
+        indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` ${label}: ${fmtInt(ctx.raw)}` } } },
+        scales: {
+          x: { grid: { color: '#e5e9f0' }, ticks: { font: { size: 11 } } },
+          y: { grid: { display: false },   ticks: { font: { size: 11 } } }
+        }
+      }
+    });
+  };
+
+  chartCotas = makeChart('chart-cotas', rows.map(r => Math.round(r.pCotas)), 'Cotas');
+  chartSolas = makeChart('chart-solas', rows.map(r => Math.round(r.pSolas)), 'Solas');
+}
+
+// ─── Inicialización ───────────────────────────────────────────────────────────
+document.getElementById('generated-at').textContent =
+  d.generated_at ? new Date(d.generated_at).toLocaleString('es-AR') : new Date().toLocaleString('es-AR');
+
+const DATA_DATE = d.date_range?.from || d.date_range?.to || new Date().toISOString().slice(0,10);
+document.getElementById('data-date-display').textContent = DATA_DATE;
+document.getElementById('data-date-val').textContent     = DATA_DATE;
+
+// Fin de mes por defecto
+const _today   = new Date();
+const _lastDay = new Date(_today.getFullYear(), _today.getMonth() + 1, 0).toISOString().slice(0,10);
+
+const endInput   = document.getElementById('end-date-input');
+const scenSelect = document.getElementById('scenario-select');
+const daysPill   = document.getElementById('days-pill');
+const scenPill   = document.getElementById('scenario-pill');
+
+endInput.value = _lastDay;
+endInput.min   = DATA_DATE;
+
+const SCEN_LABELS = { '1.2': 'Optimista', '1.0': 'Base', '0.8': 'Conservador' };
+const SCEN_COLORS = { '1.2': '#10b981',   '1.0': '#4D7CC7', '0.8': '#d97706' };
+
+const calcDays = () => {
+  const start = new Date(DATA_DATE);
+  const end   = new Date(endInput.value);
+  return Math.max(1, Math.round((end - start) / 86400000) + 1);
+};
+
+const update = () => {
+  const days = calcDays();
+  const mult = parseFloat(scenSelect.value) || 1;
+  daysPill.textContent      = `${days} días proyectados`;
+  scenPill.textContent      = SCEN_LABELS[scenSelect.value] || 'Base';
+  scenPill.style.background = SCEN_COLORS[scenSelect.value] || '#4D7CC7';
+  renderAll(days, mult);
+};
+
+endInput.addEventListener('change', update);
+scenSelect.addEventListener('change', update);
+update();
+</script>
+</body>
+</html>
