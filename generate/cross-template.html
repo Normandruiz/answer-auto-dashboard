@@ -78,6 +78,23 @@ td.total-row { background: #f0f3f8 !important; font-weight: 700; border-top: 2px
 
 footer { text-align: center; padding: 24px; color: #808285; font-size: 12px; }
 
+.rec-grid { display: flex; flex-direction: column; gap: 10px; }
+.rec-card { display: flex; gap: 16px; padding: 16px 20px; border-radius: 10px; border: 1px solid #e5e9f0; background: #fafbfd; transition: box-shadow .15s; }
+.rec-card:hover { box-shadow: 0 2px 12px rgba(0,51,160,.08); }
+.rec-num { flex-shrink: 0; width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg,#0033A0,#4D7CC7); color: #fff; font-size: 13px; font-weight: 800; display: flex; align-items: center; justify-content: center; }
+.rec-body { flex: 1; }
+.rec-meta { display: flex; gap: 8px; margin-bottom: 6px; align-items: center; flex-wrap: wrap; }
+.rec-title { font-size: 14px; font-weight: 700; color: #2B2B2B; margin-bottom: 5px; }
+.rec-desc  { font-size: 13px; color: #6A6A6A; line-height: 1.55; }
+.badge-priority { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 20px; }
+.badge-priority.alta  { background: rgba(239,68,68,.12);   color: #ef4444; }
+.badge-priority.media { background: rgba(245,158,11,.12);  color: #d97706; }
+.badge-priority.baja  { background: rgba(16,185,129,.12);  color: #10b981; }
+.badge-plat { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 20px; }
+.badge-plat.google  { background: rgba(0,51,160,.1);    color: #0033A0; }
+.badge-plat.meta    { background: rgba(250,100,0,.12);  color: #FA6400; }
+.badge-plat.ambos   { background: rgba(77,124,199,.1);  color: #4D7CC7; }
+
 @media (max-width: 1200px) { .kpi-grid { grid-template-columns: repeat(3, 1fr); } }
 @media (max-width: 640px)  { .kpi-grid { grid-template-columns: 1fr 1fr; } }
 @media print { body { background: #ffffff !important; } .nav-links { display: none; } }
@@ -140,6 +157,16 @@ footer { text-align: center; padding: 24px; color: #808285; font-size: 12px; }
   <div class="chart-box">
     <h3>Cotas por Campaña Paid <span style="font-size:12px; font-weight:400; color:#808285; margin-left:8px">· <span style="background:rgba(0,51,160,.08); padding:2px 7px; border-radius:4px; color:#0033A0; font-weight:600; font-size:11px">Google</span> · <span style="background:rgba(250,100,0,.12); padding:2px 7px; border-radius:4px; color:#FA6400; font-weight:600; font-size:11px">Meta</span></span></h3>
     <canvas id="chart-cross-cotas" style="max-height:420px"></canvas>
+  </div>
+
+  <!-- Top 10 Recomendaciones -->
+  <div class="section" id="recommendations-section">
+    <h2>
+      <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+      Top 10 Recomendaciones de Optimización
+      <span class="badge">Basado en datos del día</span>
+    </h2>
+    <div class="rec-grid" id="rec-grid"></div>
   </div>
 
   <footer>
@@ -502,6 +529,172 @@ function renderChart(crossRows) {
   canvasEl.parentElement.style.minHeight = (h + 64) + 'px';
 }
 
+// ─── Top 10 Recomendaciones ───────────────────────────────────────────────────
+function buildRecommendations(crossRows, genericRows) {
+  const recs = [];
+  const valid = crossRows.filter(r => r.cod && r.cotas > 0);
+  if (!valid.length) return recs;
+
+  const totalCotas = valid.reduce((s, r) => s + r.cotas, 0);
+  const totalSolas = valid.reduce((s, r) => s + r.solas, 0);
+  const totalSpend = valid.reduce((s, r) => s + r.spend, 0);
+  const globalCpo  = totalCotas && totalSpend ? totalSpend / totalCotas : 0;
+  const globalConv = totalCotas ? totalSolas / totalCotas : 0;
+
+  // 1 — Código con mejor Conv%: escalar
+  const byConv = [...valid].filter(r => r.conv != null).sort((a, b) => b.conv - a.conv);
+  if (byConv.length) {
+    const r = byConv[0];
+    recs.push({
+      priority: 'alta', plat: r.source.toLowerCase(),
+      title: `Escalar presupuesto — código <strong>${r.cod}</strong> (${r.source})`,
+      desc: `Es el código con mejor Conv%: <strong>${fmtPct(r.conv)}</strong> (${fmtInt(r.cotas)} cotas → ${fmtInt(r.solas)} solas, $/Sola: ${fmtARS(r.cpoSola)}). Aumentar la inversión en este código es la palanca más directa para generar más pólizas al mismo costo.`
+    });
+  }
+
+  // 2 — Código con peor Conv% y gasto real: optimizar o pausar
+  const worstConv = [...valid].filter(r => r.conv != null && r.spend > 5000 && r.conv < globalConv * 0.6)
+    .sort((a, b) => a.conv - b.conv);
+  if (worstConv.length) {
+    const r = worstConv[0];
+    recs.push({
+      priority: 'alta', plat: r.source.toLowerCase(),
+      title: `Optimizar o pausar — código <strong>${r.cod}</strong> (${r.source})`,
+      desc: `Conv% de <strong>${fmtPct(r.conv)}</strong> con gasto de <strong>${fmtARSk(r.spend)}</strong> — muy por debajo del promedio (${fmtPct(globalConv)}). Revisar landing page, proceso de cotización o segmentación de audiencia. Si no mejora, reasignar presupuesto a códigos con mejor desempeño.`
+    });
+  }
+
+  // 3 — Capture% bajo: problema de tracking o calidad de lead
+  const lowCap = crossRows.filter(r => r.groupBorder && r.capturePct != null && r.capturePct < 0.35 && r.conversions > 0)
+    .sort((a, b) => a.capturePct - b.capturePct);
+  if (lowCap.length) {
+    const r = lowCap[0];
+    recs.push({
+      priority: 'alta', plat: r.source.toLowerCase(),
+      title: `Revisar tracking — campaña "${r.campaign.slice(0, 48)}${r.campaign.length > 48 ? '…' : ''}"`,
+      desc: `Capture% de <strong>${fmtPct(r.capturePct)}</strong>: la plataforma reporta <strong>${fmtInt(r.conversions)} conversiones</strong> pero solo llegan ${fmtInt(r.campCotas)} cotas al CRM. Puede indicar pixel mal configurado, evento de conversión incorrecto (ej. "visita" en vez de "cotización") o leads no calificados.`
+    });
+  }
+
+  // 4 — Código con CPO/Cota más caro (vs promedio)
+  const expensiveCpo = [...valid].filter(r => r.cpoCota != null && r.cpoCota > globalCpo * 1.6)
+    .sort((a, b) => b.cpoCota - a.cpoCota);
+  if (expensiveCpo.length) {
+    const r = expensiveCpo[0];
+    recs.push({
+      priority: r.cpoCota > globalCpo * 2.5 ? 'alta' : 'media', plat: r.source.toLowerCase(),
+      title: `Reducir $/Cota — código <strong>${r.cod}</strong> (${r.source})`,
+      desc: `$/Cota de <strong>${fmtARS(r.cpoCota)}</strong> vs. promedio de ${fmtARS(globalCpo)} (${((r.cpoCota/globalCpo - 1)*100).toFixed(0)}% más caro). Probar reducir puja, afinar audiencia o mejorar el CTR de las creatividades para bajar el costo de adquisición.`
+    });
+  }
+
+  // 5 — Código más eficiente en $/Cota: incrementar
+  const cheapCpo = [...valid].filter(r => r.cpoCota != null && r.cpoCota < globalCpo * 0.7 && r.cotas > 10)
+    .sort((a, b) => a.cpoCota - b.cpoCota);
+  if (cheapCpo.length) {
+    const r = cheapCpo[0];
+    recs.push({
+      priority: 'media', plat: r.source.toLowerCase(),
+      title: `Aumentar inversión — código eficiente <strong>${r.cod}</strong> (${r.source})`,
+      desc: `$/Cota de <strong>${fmtARS(r.cpoCota)}</strong> — ${((1 - r.cpoCota/globalCpo)*100).toFixed(0)}% más barato que el promedio. Es el código con mejor costo de adquisición de cotas. Ampliar presupuesto es la forma más rentable de crecer en volumen.`
+    });
+  }
+
+  // 6 — A/B Test: ¿hay ganador?
+  const abRows  = valid.filter(r => campaignType(r.campaign).cls === 'test');
+  const ctrRows = valid.filter(r => r.source === 'Meta' && campaignType(r.campaign).cls === 'conv');
+  if (abRows.length && ctrRows.length) {
+    const abConv  = abRows.reduce((s,r) => s + r.solas,0) / (abRows.reduce((s,r) => s + r.cotas,0) || 1);
+    const ctrConv = ctrRows.reduce((s,r) => s + r.solas,0) / (ctrRows.reduce((s,r) => s + r.cotas,0) || 1);
+    const winner  = abConv > ctrConv ? 'A/B Test' : 'campaña control';
+    const pctDiff = Math.abs((abConv - ctrConv) / (ctrConv || 1) * 100).toFixed(0);
+    recs.push({
+      priority: 'media', plat: 'meta',
+      title: `A/B Test Meta: evaluar ganador`,
+      desc: `A/B Test Conv%: <strong>${fmtPct(abConv)}</strong> vs. campaña control: <strong>${fmtPct(ctrConv)}</strong>. La ${winner} lleva ${pctDiff}% de ventaja. Si la diferencia es sostenida, pausar la variante perdedora y consolidar el presupuesto en la ganadora.`
+    });
+  }
+
+  // 7 — Google vs Meta: cuál es más eficiente en $/Cota
+  const gRows = valid.filter(r => r.source === 'Google');
+  const mRows = valid.filter(r => r.source === 'Meta');
+  const gCpo  = gRows.reduce((s,r)=>s+r.spend,0) / (gRows.reduce((s,r)=>s+r.cotas,0) || 1);
+  const mCpo  = mRows.reduce((s,r)=>s+r.spend,0) / (mRows.reduce((s,r)=>s+r.cotas,0) || 1);
+  if (gCpo > 0 && mCpo > 0 && gRows.length && mRows.length) {
+    const better  = gCpo < mCpo ? 'Google' : 'Meta';
+    const worse   = gCpo < mCpo ? 'Meta'   : 'Google';
+    const betterCpo = Math.min(gCpo, mCpo);
+    const worseCpo  = Math.max(gCpo, mCpo);
+    const diff = ((worseCpo - betterCpo) / betterCpo * 100).toFixed(0);
+    recs.push({
+      priority: 'media', plat: better.toLowerCase(),
+      title: `${better} es ${diff}% más eficiente en $/Cota que ${worse}`,
+      desc: `<strong>Google:</strong> $/Cota ${fmtARS(gCpo)} (${fmtInt(gRows.reduce((s,r)=>s+r.cotas,0))} cotas) · <strong>Meta:</strong> $/Cota ${fmtARS(mCpo)} (${fmtInt(mRows.reduce((s,r)=>s+r.cotas,0))} cotas). Evaluar redistribuir inversión hacia ${better} para maximizar cotas por peso invertido.`
+    });
+  }
+
+  // 8 — PMax / DemandGen: señales de conversión
+  const pmRows = valid.filter(r => ['pmax','dgen'].includes(r.tipo.cls));
+  if (pmRows.length) {
+    const pmCotas = pmRows.reduce((s,r)=>s+r.cotas,0);
+    const pmSolas = pmRows.reduce((s,r)=>s+r.solas,0);
+    const pmConv  = pmCotas ? pmSolas / pmCotas : null;
+    const tipos   = [...new Set(pmRows.map(r=>r.tipo.label))].join(' / ');
+    recs.push({
+      priority: 'baja', plat: 'google',
+      title: `Señales de conversión en campañas ${tipos} — apuntar a Solas`,
+      desc: `Campañas ${tipos} generan <strong>${fmtInt(pmCotas)} cotas</strong> con Conv% de <strong>${fmtPct(pmConv)}</strong>. Para que Google optimice hacia pólizas emitidas, configurar el evento de conversión principal como "sola emitida" y no como "cotización iniciada" — esto reduce el $/Sola a largo plazo.`
+    });
+  }
+
+  // 9 — Códigos genéricos: mejorar atribución
+  const genCotas = genericRows.reduce((s,r)=>s+r.cotas,0);
+  if (genCotas > 50) {
+    const pct = genCotas / (totalCotas + genCotas);
+    recs.push({
+      priority: pct > 0.12 ? 'media' : 'baja', plat: 'ambos',
+      title: `Mejorar atribución: ${fmtInt(genCotas)} cotas en ${genericRows.length} códigos genéricos`,
+      desc: `El ${fmtPct(pct)} de las cotas llega por códigos sin campaña específica (Meta/Google genérico). Revisar los parámetros UTM de los ${genericRows.length} códigos afectados y asignarles campañas concretas para poder medir el rendimiento real de cada esfuerzo paid.`
+    });
+  }
+
+  // 10 — Capture% alto: usar como referencia de medición
+  const highCap = crossRows.filter(r => r.groupBorder && r.capturePct != null && r.capturePct > 0.65)
+    .sort((a, b) => b.capturePct - a.capturePct);
+  if (highCap.length) {
+    const r = highCap[0];
+    recs.push({
+      priority: 'baja', plat: r.source.toLowerCase(),
+      title: `Usar "${r.campaign.slice(0,45)}${r.campaign.length>45?'…':''}" como modelo de tracking`,
+      desc: `Capture% de <strong>${fmtPct(r.capturePct)}</strong> — las conversiones de plataforma se alinean bien con las cotas CRM. Usar la configuración de píxel/evento de conversión de esta campaña como referencia para estandarizar el tracking en las campañas con Capture% bajo.`
+    });
+  }
+
+  return recs.slice(0, 10);
+}
+
+function renderRecommendations(crossRows, genericRows) {
+  const recs = buildRecommendations(crossRows, genericRows);
+  const grid = document.getElementById('rec-grid');
+  if (!recs.length) {
+    grid.innerHTML = '<p style="color:#808285;font-size:13px;padding:8px 0">No hay suficientes datos para generar recomendaciones.</p>';
+    return;
+  }
+  const platLabel = { google: 'Google', meta: 'Meta', ambos: 'Google + Meta' };
+  grid.innerHTML = recs.map((r, i) => `
+    <div class="rec-card">
+      <div class="rec-num">${i + 1}</div>
+      <div class="rec-body">
+        <div class="rec-meta">
+          <span class="badge-priority ${r.priority}">${r.priority.charAt(0).toUpperCase() + r.priority.slice(1)} impacto</span>
+          <span class="badge-plat ${r.plat}">${platLabel[r.plat] || r.plat}</span>
+        </div>
+        <div class="rec-title">${r.title}</div>
+        <div class="rec-desc">${r.desc}</div>
+      </div>
+    </div>`).join('');
+}
+
 // ─── Render principal ─────────────────────────────────────────────────────────
 function renderAll(data) {
   const crossRows  = buildCrossRows(data);
@@ -510,6 +703,7 @@ function renderAll(data) {
   renderCrossTable(crossRows);
   renderGenericTable(genericRows);
   renderChart(crossRows);
+  renderRecommendations(crossRows, genericRows);
 }
 
 // ─── Fecha y meta ─────────────────────────────────────────────────────────────
