@@ -110,6 +110,51 @@ footer { text-align: center; padding: 24px; color: #808285; font-size: 12px; }
 </style>
 </head>
 <body>
+
+<!-- ═══ AUTH OVERLAY ═══ -->
+<div id="auth-overlay" style="position:fixed;inset:0;background:linear-gradient(135deg,#0033A0 0%,#001f60 100%);z-index:9999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:28px;padding:24px;">
+  <img src="assets/logo-answer.png" alt="Answer Seguros" style="height:72px;object-fit:contain;filter:brightness(0) invert(1);opacity:.9;" onerror="this.style.display='none'">
+  <div id="auth-card" style="background:#fff;border-radius:16px;padding:40px 36px;max-width:380px;width:100%;box-shadow:0 24px 64px rgba(0,0,40,.45);">
+    <div style="text-align:center;margin-bottom:28px;">
+      <div style="font-size:22px;font-weight:800;color:#0033A0;margin-bottom:6px;">Dashboard Answer Seguros</div>
+      <div style="font-size:13px;color:#808285;">Ingresá tu contraseña para acceder</div>
+    </div>
+    <input type="password" id="auth-input" placeholder="Contraseña" autocomplete="current-password"
+      style="width:100%;border:1.5px solid #e5e9f0;border-radius:8px;padding:13px 16px;font-size:15px;outline:none;margin-bottom:12px;transition:border-color .15s;font-family:inherit;">
+    <button id="auth-btn"
+      style="width:100%;background:linear-gradient(90deg,#0033A0,#4D7CC7);color:#fff;border:none;border-radius:8px;padding:13px;font-size:15px;font-weight:700;cursor:pointer;transition:filter .15s;font-family:inherit;">
+      Ingresar
+    </button>
+    <div id="auth-err" style="color:#ef4444;font-size:13px;margin-top:12px;text-align:center;display:none;">Contraseña incorrecta. Intentá de nuevo.</div>
+  </div>
+  <div style="color:rgba(255,255,255,.45);font-size:12px;text-align:center;">Answer Seguros · Grupo Galicia · Dashboard confidencial</div>
+</div>
+<style>
+@keyframes auth-shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+#auth-input:focus{border-color:#4D7CC7;box-shadow:0 0 0 3px rgba(77,124,199,.15);}
+#auth-btn:hover{filter:brightness(1.1);}
+</style>
+<script>
+(async function(){
+  const HASH='8e621e71fbf2d29f948113f31de79c663e3c638b69360892c9b9f865753f79cf';
+  const KEY='answer_dash_v1';
+  const ov=document.getElementById('auth-overlay');
+  const sha256=async s=>{const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));return Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join('');};
+  if(sessionStorage.getItem(KEY)===HASH){ov.remove();return;}
+  const inp=document.getElementById('auth-input'),btn=document.getElementById('auth-btn'),err=document.getElementById('auth-err'),card=document.getElementById('auth-card');
+  const attempt=async()=>{
+    btn.disabled=true;btn.textContent='Verificando…';
+    const h=await sha256(inp.value);
+    if(h===HASH){sessionStorage.setItem(KEY,HASH);ov.style.transition='opacity .35s';ov.style.opacity='0';setTimeout(()=>ov.remove(),360);}
+    else{err.style.display='block';inp.value='';card.style.animation='auth-shake .35s';setTimeout(()=>{card.style.animation='';},360);btn.disabled=false;btn.textContent='Ingresar';inp.focus();}
+  };
+  btn.addEventListener('click',attempt);
+  inp.addEventListener('keydown',e=>e.key==='Enter'&&attempt());
+  inp.focus();
+})();
+</script>
+<!-- ═══ / AUTH OVERLAY ═══ -->
+
 <div class="container">
 
   <header class="hero">
