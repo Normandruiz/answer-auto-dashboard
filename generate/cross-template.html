@@ -210,66 +210,59 @@ const AUTO_CAMPAIGNS_META = (d.meta_ads || []).filter(c =>
   /auto/i.test(c.campaign)
 );
 
-// ─── Construir filas del cross ────────────────────────────────────────────────
+// ─── Construir filas del cross (una fila por código) ─────────────────────────
 function buildCrossRows(data) {
   const platMap = buildPlatMap(data);
   const solasP  = data.solas.by_platform || {};
-  const cotasP  = data.cotas.by_platform || {};
   const rows    = [];
 
-  // Función que construye una fila dado una lista de campañas y fuente
   const processAds = (campaigns, source) => {
     for (const camp of campaigns) {
-      // La plataforma en CRM suele coincidir con el campo campaign de Ads
-      // o con el campo plataforma de by_campaign_code
-      const platName = camp.campaign;
+      const platName  = camp.campaign;
+      const codesArr  = platMap[platName] || [];
+      const campCotas = codesArr.reduce((s, c) => s + c.cotas, 0);
+      const campSolas = solasP[platName] || 0;
+      const campSpend = camp.spend || 0;
+      const campConv  = camp.conversions || camp.results || 0;
+      const tipo      = campaignType(camp.campaign);
 
-      // Buscar en platMap por nombre exacto o por contención
-      let codes = platMap[platName] || null;
-      // Fallback: buscar plataformas cuyo nombre contiene el nombre de la campaña
-      if (!codes) {
-        for (const [plat, c] of Object.entries(platMap)) {
-          if (GENERIC_META_PLATS.has(plat) || GENERIC_GOOGLE_PLATS.has(plat)) continue;
-          if (plat === platName) { codes = c; break; }
-        }
+      if (codesArr.length === 0) {
+        // Campaña sin códigos CRM — una fila vacía
+        rows.push({
+          source, campaign: camp.campaign, tipo,
+          cod: null, codCampaign: null,
+          cotas: 0, solas: 0, spend: campSpend, conversions: campConv,
+          conv: null, cpoCota: null, cpoSola: null,
+          capturePct: null, groupBorder: true, campCotas, campSolas
+        });
+      } else {
+        codesArr.forEach((codeInfo, idx) => {
+          const ratio = campCotas > 0 ? codeInfo.cotas / campCotas : 0;
+          const solas = Math.round(campSolas * ratio);
+          const spend = Math.round(campSpend * ratio);
+          rows.push({
+            source, campaign: camp.campaign, tipo,
+            cod: codeInfo.cod, codCampaign: codeInfo.campaign,
+            cotas: codeInfo.cotas, solas, spend, conversions: campConv,
+            conv:      codeInfo.cotas ? solas / codeInfo.cotas : null,
+            cpoCota:   codeInfo.cotas && spend ? spend / codeInfo.cotas : null,
+            cpoSola:   solas && spend ? spend / solas : null,
+            capturePct: (campConv > 0 && campCotas > 0) ? campCotas / campConv : null,
+            groupBorder: idx === 0, campCotas, campSolas
+          });
+        });
       }
-
-      const codesArr = codes || [];
-      const cotas    = codesArr.reduce((s, c) => s + c.cotas, 0);
-
-      // Solas: usar by_platform[platName] si existe; si no, sumar proporcional no aplica aquí
-      const solas = solasP[platName] || 0;
-
-      const spend       = camp.spend       || 0;
-      const conversions = camp.conversions || camp.results || 0;
-      const tipo        = campaignType(camp.campaign);
-      const conv        = cotas ? solas / cotas : null;
-      const cpoCota     = cotas && spend ? spend / cotas  : null;
-      const cpoSola     = solas && spend ? spend / solas  : null;
-      const capturePct  = (conversions > 0 && cotas > 0) ? cotas / conversions : null;
-
-      rows.push({
-        source,
-        campaign: camp.campaign,
-        tipo,
-        codes: codesArr,
-        cotas,
-        solas,
-        spend,
-        conversions,
-        conv,
-        cpoCota,
-        cpoSola,
-        capturePct
-      });
     }
   };
 
   processAds(AUTO_CAMPAIGNS_GA,   'Google');
   processAds(AUTO_CAMPAIGNS_META, 'Meta');
 
-  // Ordenar por cotas desc
-  rows.sort((a, b) => b.cotas - a.cotas);
+  // Ordenar por campaña (para mantener agrupación), luego por cotas desc dentro de cada campaña
+  rows.sort((a, b) => {
+    if (b.campCotas !== a.campCotas) return b.campCotas - a.campCotas;
+    return b.cotas - a.cotas;
+  });
   return rows;
 }
 
@@ -314,57 +307,67 @@ function renderKPIs(data, crossRows) {
     </div>`).join('');
 }
 
-// ─── Tabla Cross ──────────────────────────────────────────────────────────────
+// ─── Tabla Cross (una fila por código) ───────────────────────────────────────
 function renderCrossTable(crossRows) {
   const totalCotas = crossRows.reduce((s, r) => s + r.cotas, 0);
   const totalSolas = crossRows.reduce((s, r) => s + r.solas, 0);
   const totalSpend = crossRows.reduce((s, r) => s + r.spend, 0);
-  const totalConv  = crossRows.reduce((s, r) => s + r.conversions, 0);
+  const totalConv  = crossRows.reduce((s, r) => s + (r.groupBorder ? r.conversions : 0), 0);
+  const numCodes   = crossRows.filter(r => r.cod).length;
+  const numCamps   = new Set(crossRows.map(r => r.campaign)).size;
 
   document.getElementById('cross-badge').textContent =
-    `${crossRows.length} campañas · ${fmtInt(totalCotas)} cotas`;
+    `${numCamps} campañas · ${numCodes} códigos · ${fmtInt(totalCotas)} cotas`;
 
   const head = `<tr>
     <th>#</th>
     <th>Fuente</th>
     <th style="min-width:200px">Campaña Paid</th>
     <th>Tipo</th>
-    <th style="min-width:140px">Códigos URL</th>
+    <th>Código URL</th>
+    <th style="min-width:160px; font-size:10px">Nombre Código CRM</th>
     <th class="num">Cotas</th>
     <th class="num">% Total</th>
-    <th class="num">Solas</th>
+    <th class="num">Solas*</th>
     <th class="num">Conv%</th>
-    <th class="num">Gasto</th>
+    <th class="num">Gasto*</th>
     <th class="num">$/Cota</th>
     <th class="num">$/Sola</th>
     <th class="num">Capture%</th>
   </tr>`;
 
-  const body = crossRows.map((r, i) => {
-    const srcCls   = r.source === 'Google' ? 'google' : 'meta';
-    const tipoCls  = r.tipo.cls;
-    const pctTot   = totalCotas ? r.cotas / totalCotas : null;
-    const convCls  = r.conv != null ? (r.conv > 0.12 ? 'good' : r.conv < 0.05 ? 'warning' : '') : '';
-    const capCls   = r.capturePct != null ? (r.capturePct > 0.8 ? 'good' : r.capturePct < 0.3 ? 'warning' : '') : '';
+  let rowNum = 0;
+  const body = crossRows.map((r) => {
+    if (r.cod) rowNum++;
+    const srcCls  = r.source === 'Google' ? 'google' : 'meta';
+    const tipoCls = r.tipo.cls;
+    const pctTot  = totalCotas ? r.cotas / totalCotas : null;
+    const convCls = r.conv != null ? (r.conv > 0.12 ? 'good' : r.conv < 0.05 ? 'warning' : '') : '';
+    const capCls  = r.capturePct != null ? (r.capturePct > 0.8 ? 'good' : r.capturePct < 0.3 ? 'warning' : '') : '';
+    const groupStyle = r.groupBorder ? 'border-top:2px solid #e5e9f0;' : '';
 
-    const codesHtml = r.codes.length
-      ? r.codes.map(c => `<span class="cod-tag" title="${c.campaign}">${c.cod}</span>`).join(' ')
+    const codCell = r.cod
+      ? `<span class="cod-tag">${r.cod}</span>`
       : '<span style="color:#aaa;font-size:11px">—</span>';
+    const codName = r.codCampaign
+      ? `<span style="font-size:11px;color:#6A6A6A;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block" title="${r.codCampaign}">${r.codCampaign}</span>`
+      : '—';
 
-    return `<tr>
-      <td style="color:#808285">${i + 1}</td>
+    return `<tr style="${groupStyle}">
+      <td style="color:#808285">${r.cod ? rowNum : ''}</td>
       <td><span class="badge-source ${srcCls}">${r.source}</span></td>
-      <td style="font-size:12px; font-weight:600; max-width:240px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap" title="${r.campaign}">${r.campaign}</td>
+      <td style="font-size:12px;font-weight:600;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.campaign}">${r.campaign}</td>
       <td><span class="badge-tipo ${tipoCls}">${r.tipo.label}</span></td>
-      <td class="codes-cell">${codesHtml}</td>
-      <td class="num blue">${fmtInt(r.cotas)}</td>
-      <td class="num">${fmtPct(pctTot)}</td>
-      <td class="num orange">${fmtInt(r.solas)}</td>
+      <td class="codes-cell">${codCell}</td>
+      <td>${codName}</td>
+      <td class="num blue">${r.cotas ? fmtInt(r.cotas) : '—'}</td>
+      <td class="num">${r.cotas ? fmtPct(pctTot) : '—'}</td>
+      <td class="num orange">${r.solas ? fmtInt(r.solas) : '—'}</td>
       <td class="num ${convCls}">${fmtPct(r.conv)}</td>
       <td class="num">${r.spend ? fmtARSk(r.spend) : '—'}</td>
       <td class="num">${r.cpoCota ? fmtARS(r.cpoCota) : '—'}</td>
       <td class="num">${r.cpoSola ? fmtARS(r.cpoSola) : '—'}</td>
-      <td class="num ${capCls}">${fmtPct(r.capturePct)}</td>
+      <td class="num ${capCls}">${r.groupBorder ? fmtPct(r.capturePct) : ''}</td>
     </tr>`;
   }).join('');
 
@@ -374,7 +377,7 @@ function renderCrossTable(crossRows) {
   const capTotal   = totalConv  && totalCotas ? totalCotas / totalConv  : null;
 
   const footer = `<tr>
-    <td colspan="5" class="total-row">TOTAL (${crossRows.length} campañas)</td>
+    <td colspan="6" class="total-row">TOTAL (${numCodes} códigos / ${numCamps} campañas)</td>
     <td class="num total-row blue">${fmtInt(totalCotas)}</td>
     <td class="num total-row">100%</td>
     <td class="num total-row orange">${fmtInt(totalSolas)}</td>
@@ -385,10 +388,9 @@ function renderCrossTable(crossRows) {
     <td class="num total-row">${fmtPct(capTotal)}</td>
   </tr>`;
 
-  const note = `<tr class="note-row"><td colspan="13">
-    * Cotas y Solas provienen del CRM (campo <code>plataforma</code> de cada código).
-    Capture% = Cotas CRM / Conversiones reportadas por la plataforma.
-    $/Cota y $/Sola usan el gasto total de la campaña Ads.
+  const note = `<tr class="note-row"><td colspan="14">
+    * Gasto y Solas se distribuyen proporcionalmente por cotas dentro de cada campaña.
+    Capture% (solo primera fila de cada campaña) = Cotas CRM totales / Conversiones reportadas por la plataforma.
   </td></tr>`;
 
   const t = document.getElementById('cross-table');
