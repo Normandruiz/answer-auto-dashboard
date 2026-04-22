@@ -187,8 +187,8 @@ footer { text-align: center; padding: 24px; color: #808285; font-size: 12px; }
   <!-- Barra de controles -->
   <div class="controls-bar">
     <div class="ctrl-group">
-      <div class="ctrl-label">Datos de</div>
-      <div class="ctrl-value" id="data-date-val">—</div>
+      <div class="ctrl-label">Período de datos</div>
+      <div class="ctrl-value" id="data-date-val" style="font-size:13px">—</div>
     </div>
     <div class="ctrl-sep">→</div>
     <div class="ctrl-group">
@@ -207,7 +207,7 @@ footer { text-align: center; padding: 24px; color: #808285; font-size: 12px; }
     </div>
     <div class="scenario-pill" id="scenario-pill">Base</div>
     <div class="ctrl-note">
-      Proyección lineal: tasa diaria × días seleccionados. El escenario ajusta el rendimiento esperado.
+      Tasa diaria = acumulado MTD ÷ días del período. Proyección = tasa diaria × días futuros seleccionados.
     </div>
   </div>
 
@@ -225,7 +225,7 @@ footer { text-align: center; padding: 24px; color: #808285; font-size: 12px; }
       <table id="proj-table"><thead></thead><tbody></tbody></table>
     </div>
     <div style="font-size:11px;color:#808285;margin-top:10px;line-height:1.5">
-      * <strong>Columnas resaltadas en verde</strong> = valores proyectados al período seleccionado. Columnas en gris = tasa diaria base.
+      * <strong>Columnas resaltadas en verde</strong> = valores proyectados al período seleccionado. Columnas en gris = tasa diaria normalizada (acumulado MTD ÷ días período).
       <br>* <strong>Capture%</strong> = Cotas CRM / Conversiones plataforma (indica calidad de atribución).
       <br>* <strong>Prob. Cierre</strong> = Conv% (Solas/Cotas) usado como probabilidad de emisión de póliza.
     </div>
@@ -311,7 +311,13 @@ function probInfo(conv) {
   return               { label: 'Baja',  cls: 'baja',  text: 'A mejorar' };
 }
 
-// ─── Datos base (tasa diaria) ─────────────────────────────────────────────────
+// ─── Período de datos y normalización ────────────────────────────────────────
+const DATA_FROM = d.date_range?.from || d.date_range?.to || new Date().toISOString().slice(0,10);
+const DATA_TO   = d.date_range?.to   || DATA_FROM;
+// Cantidad de días reales en el período del JSON (ej. 21 días MTD)
+const DATASET_DAYS = Math.max(1, Math.round((new Date(DATA_TO) - new Date(DATA_FROM)) / 86400000) + 1);
+
+// ─── Campañas Auto filtradas ──────────────────────────────────────────────────
 const EXCLUDE_CAMP = 'Search - Movilidad - Segment  - AR';
 const GA_AUTO   = (d.google_ads || []).filter(c => /auto/i.test(c.campaign) && c.campaign !== EXCLUDE_CAMP);
 const META_AUTO = (d.meta_ads   || []).filter(c => /auto/i.test(c.campaign));
@@ -323,10 +329,11 @@ function buildBaseRows() {
 
   const process = (camps, source) => {
     for (const camp of camps) {
-      const dailySpend = camp.spend  || 0;
-      const dailyConv  = camp.conversions || camp.results || 0;
-      const dailyCotas = cotasP[camp.campaign] || 0;
-      const dailySolas = solasP[camp.campaign] || 0;
+      // Los datos son acumulados del período → normalizar a tasa DIARIA
+      const dailySpend = (camp.spend || 0) / DATASET_DAYS;
+      const dailyConv  = (camp.conversions || camp.results || 0) / DATASET_DAYS;
+      const dailyCotas = (cotasP[camp.campaign] || 0) / DATASET_DAYS;
+      const dailySolas = (solasP[camp.campaign] || 0) / DATASET_DAYS;
       rows.push({
         source, campaign: camp.campaign,
         tipo: campaignType(camp.campaign),
@@ -509,9 +516,13 @@ function renderCharts(rows) {
 document.getElementById('generated-at').textContent =
   d.generated_at ? new Date(d.generated_at).toLocaleString('es-AR') : new Date().toLocaleString('es-AR');
 
-const DATA_DATE = d.date_range?.from || d.date_range?.to || new Date().toISOString().slice(0,10);
-document.getElementById('data-date-display').textContent = DATA_DATE;
-document.getElementById('data-date-val').textContent     = DATA_DATE;
+// Mostrar período real de los datos (ej. "01/04 – 21/04 · 21 días MTD")
+const _fmtDate = iso => { const [y,m,day] = iso.split('-'); return `${day}/${m}`; };
+const periodLabel = DATA_FROM === DATA_TO
+  ? `${_fmtDate(DATA_FROM)} · 1 día`
+  : `${_fmtDate(DATA_FROM)} – ${_fmtDate(DATA_TO)} · ${DATASET_DAYS} días MTD`;
+document.getElementById('data-date-display').textContent = periodLabel;
+document.getElementById('data-date-val').textContent     = periodLabel;
 
 // Fin de mes por defecto
 const _today   = new Date();
@@ -523,21 +534,24 @@ const daysPill   = document.getElementById('days-pill');
 const scenPill   = document.getElementById('scenario-pill');
 
 endInput.value = _lastDay;
-endInput.min   = DATA_DATE;
+endInput.min   = DATA_TO; // mínimo: desde el último día del período
 
 const SCEN_LABELS = { '1.2': 'Optimista', '1.0': 'Base', '0.8': 'Conservador' };
 const SCEN_COLORS = { '1.2': '#10b981',   '1.0': '#4D7CC7', '0.8': '#d97706' };
 
 const calcDays = () => {
-  const start = new Date(DATA_DATE);
-  const end   = new Date(endInput.value);
+  // Proyectar desde el día siguiente al cierre del período hasta la fecha elegida
+  const start = new Date(DATA_TO);
+  start.setDate(start.getDate() + 1);
+  const end = new Date(endInput.value);
+  if (isNaN(end.getTime()) || end < start) return 1;
   return Math.max(1, Math.round((end - start) / 86400000) + 1);
 };
 
 const update = () => {
   const days = calcDays();
   const mult = parseFloat(scenSelect.value) || 1;
-  daysPill.textContent      = `${days} días proyectados`;
+  daysPill.textContent      = `${days} días a proyectar`;
   scenPill.textContent      = SCEN_LABELS[scenSelect.value] || 'Base';
   scenPill.style.background = SCEN_COLORS[scenSelect.value] || '#4D7CC7';
   renderAll(days, mult);
