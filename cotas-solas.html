@@ -433,7 +433,8 @@ function renderPlatformTable(d) {
     cotasByPlat[p] = (cotasByPlat[p] || 0) + info.cotas;
   }
 
-  const rows = Object.entries(bcc).map(([cod, info]) => {
+  const EXCLUDE_PLAT = new Set(['Orgánico', 'Own media', 'Own Media', 'DV']);
+  const rows = Object.entries(bcc).filter(([, info]) => !EXCLUDE_PLAT.has(info.plataforma)).map(([cod, info]) => {
     const platTotal = cotasByPlat[info.plataforma] || 1;
     const ratio = info.cotas / platTotal;
     const platSolas  = d.solas.by_platform[info.plataforma] || 0;

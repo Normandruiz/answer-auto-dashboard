@@ -11,13 +11,15 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = resolve(__dirname, '..');
 
 const dataPath = resolve(REPO_ROOT, process.argv[2] || 'data/mock.json');
-const templatePath      = resolve(REPO_ROOT, 'generate/template.html');
+const templatePath           = resolve(REPO_ROOT, 'generate/template.html');
 const cotasSolasTemplatePath = resolve(REPO_ROOT, 'generate/cotas-solas-template.html');
+const crossTemplatePath      = resolve(REPO_ROOT, 'generate/cross-template.html');
 
-const [rawData, template, cotasSolasTemplate] = await Promise.all([
+const [rawData, template, cotasSolasTemplate, crossTemplate] = await Promise.all([
   readFile(dataPath, 'utf8'),
   readFile(templatePath, 'utf8'),
-  readFile(cotasSolasTemplatePath, 'utf8').catch(() => null)
+  readFile(cotasSolasTemplatePath, 'utf8').catch(() => null),
+  readFile(crossTemplatePath, 'utf8').catch(() => null)
 ]);
 
 const data = JSON.parse(rawData);
@@ -64,6 +66,16 @@ if (cotasSolasTemplate) {
   console.log(`✓ cotas-solas.html generado (${cotasSolasHtml.length.toLocaleString()} chars)`);
 } else {
   console.warn('  ⚠ cotas-solas-template.html no encontrado — omitido');
+}
+
+// Generar cross.html
+if (crossTemplate) {
+  const crossHtml = crossTemplate.replace('__DATA_JSON__', safeJson);
+  const crossPath = resolve(REPO_ROOT, 'cross.html');
+  await writeFile(crossPath, crossHtml, 'utf8');
+  console.log(`✓ cross.html generado (${crossHtml.length.toLocaleString()} chars)`);
+} else {
+  console.warn('  ⚠ cross-template.html no encontrado — omitido');
 }
 
 const dateStamp = (data.date_range?.to || new Date().toISOString().slice(0, 10));

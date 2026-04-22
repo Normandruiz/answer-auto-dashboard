@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Answer Seguros — Dashboard Cross Paid vs CRM</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+body { background: linear-gradient(180deg, #ffffff 0%, #f0f3f8 100%); background-attachment: fixed; color: #2B2B2B; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.5; padding: 24px; min-height: 100vh; }
+.container { max-width: 1440px; margin: 0 auto; }
+
+header.hero { background: #ffffff; padding: 24px 32px; border-radius: 16px; border: 1px solid #e5e9f0; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,51,160,.06); border-top: 4px solid; border-image: linear-gradient(90deg, #0033A0, #FA6400) 1; }
+header.hero .brand-row { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-bottom: 16px; }
+header.hero .brand-row .logo { height: 64px; width: auto; max-width: 240px; object-fit: contain; }
+header.hero .title-block { flex: 1; text-align: center; }
+header.hero h1 { font-size: 28px; background: linear-gradient(90deg, #0033A0, #FA6400); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 6px; font-weight: 800; }
+header.hero .sub { color: #6A6A6A; font-size: 13px; }
+header.hero .meta { display: flex; gap: 24px; justify-content: center; flex-wrap: wrap; font-size: 13px; color: #808285; padding-top: 14px; border-top: 1px solid #f0f3f8; }
+header.hero .meta strong { color: #2B2B2B; font-weight: 600; }
+@media (max-width: 720px) {
+  header.hero .brand-row { flex-direction: column; gap: 12px; }
+  header.hero .brand-row .logo { height: 40px; }
+  header.hero h1 { font-size: 22px; }
+}
+
+.nav-links { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
+.back-btn { display: inline-flex; align-items: center; gap: 8px; background: #f0f3f8; border: 1px solid #e5e9f0; color: #0033A0; font-weight: 600; font-size: 13px; padding: 10px 18px; border-radius: 8px; text-decoration: none; transition: all .15s; }
+.back-btn:hover { background: #e5e9f0; border-color: #4D7CC7; }
+
+.kpi-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 16px; margin-bottom: 24px; }
+.kpi-card { background: #ffffff; border: 1px solid #e5e9f0; border-radius: 12px; padding: 20px; border-left: 4px solid #0033A0; box-shadow: 0 1px 3px rgba(0,51,160,.04); }
+.kpi-card .label { font-size: 11px; color: #808285; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; font-weight: 600; }
+.kpi-card .value { font-size: 24px; font-weight: 700; color: #2B2B2B; }
+.kpi-card .sub { font-size: 11px; color: #808285; margin-top: 4px; }
+.kpi-card.blue   { border-left-color: #0033A0; } .kpi-card.blue   .value { color: #0033A0; }
+.kpi-card.orange { border-left-color: #FA6400; } .kpi-card.orange .value { color: #FA6400; }
+.kpi-card.green  { border-left-color: #10b981; } .kpi-card.green  .value { color: #10b981; }
+.kpi-card.mid    { border-left-color: #4D7CC7; } .kpi-card.mid    .value { color: #4D7CC7; }
+.kpi-card.g-card { border-left-color: #0033A0; } .kpi-card.g-card .value { color: #0033A0; }
+.kpi-card.m-card { border-left-color: #FA6400; } .kpi-card.m-card .value { color: #FA6400; }
+
+.section { background: #ffffff; border: 1px solid #e5e9f0; border-radius: 12px; padding: 24px; margin-bottom: 24px; box-shadow: 0 1px 3px rgba(0,51,160,.04); }
+.section h2 { font-size: 18px; margin-bottom: 16px; color: #2B2B2B; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+.section h2 .badge { font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 20px; background: #f0f3f8; color: #6A6A6A; }
+
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th { background: #f0f3f8; color: #6A6A6A; font-weight: 700; padding: 10px 12px; text-align: left; border-bottom: 1px solid #e5e9f0; font-size: 11px; text-transform: uppercase; letter-spacing: 0.3px; white-space: nowrap; }
+th.num, td.num { text-align: right; font-variant-numeric: tabular-nums; }
+td { padding: 10px 12px; border-bottom: 1px solid #f0f3f8; color: #2B2B2B; }
+tr:hover td { background: #fafbfd; }
+td.blue   { color: #0033A0; font-weight: 600; }
+td.orange { color: #FA6400; font-weight: 600; }
+td.mid    { color: #4D7CC7; font-weight: 600; }
+td.green  { color: #10b981; font-weight: 600; }
+td.warning { color: #ef4444; font-weight: 700; }
+td.good   { color: #10b981; font-weight: 700; }
+td.total-row { background: #f0f3f8 !important; font-weight: 700; border-top: 2px solid #e5e9f0; }
+
+.badge-source { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 20px; white-space: nowrap; }
+.badge-source.google { background: rgba(0,51,160,.1); color: #0033A0; }
+.badge-source.meta   { background: rgba(250,100,0,.12); color: #FA6400; }
+
+.badge-tipo { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 4px; background: #f0f3f8; color: #6A6A6A; white-space: nowrap; }
+.badge-tipo.search   { background: rgba(0,51,160,.08); color: #0033A0; }
+.badge-tipo.pmax     { background: rgba(77,124,199,.12); color: #4D7CC7; }
+.badge-tipo.dgen     { background: rgba(16,185,129,.1); color: #10b981; }
+.badge-tipo.conv     { background: rgba(250,100,0,.1); color: #FA6400; }
+.badge-tipo.test     { background: rgba(168,67,8,.1); color: #A84308; }
+
+.codes-cell { font-size: 11px; color: #6A6A6A; max-width: 160px; }
+.cod-tag { display: inline-block; background: #f0f3f8; border: 1px solid #e5e9f0; color: #4D7CC7; font-weight: 700; font-size: 10px; padding: 1px 5px; border-radius: 4px; margin: 1px 2px; white-space: nowrap; }
+
+.chart-box { background: #ffffff; border: 1px solid #e5e9f0; border-radius: 12px; padding: 24px; margin-bottom: 24px; box-shadow: 0 1px 3px rgba(0,51,160,.04); }
+.chart-box h3 { margin-bottom: 16px; color: #2B2B2B; font-size: 15px; font-weight: 700; }
+
+.note-row td { font-size: 11px; color: #808285; padding: 8px 12px; border: none; background: transparent !important; }
+
+footer { text-align: center; padding: 24px; color: #808285; font-size: 12px; }
+
+@media (max-width: 1200px) { .kpi-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 640px)  { .kpi-grid { grid-template-columns: 1fr 1fr; } }
+@media print { body { background: #ffffff !important; } .nav-links { display: none; } }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header class="hero">
+    <div class="brand-row">
+      <img src="assets/logo-answer.png" alt="Answer Galicia Seguros" class="logo left" onerror="this.style.visibility='hidden'">
+      <div class="title-block">
+        <h1>Dashboard Cross — Campañas Paid vs CRM</h1>
+        <div class="sub">GOOGLE ADS + META ADS · Relación entre campañas pagadas y códigos de campaña del CRM (landing URL)</div>
+      </div>
+      <img src="assets/logo-beyond.png" alt="Beyond" class="logo right" onerror="this.style.visibility='hidden'">
+    </div>
+    <div class="meta">
+      <span>Generado: <strong id="generated-at"></strong></span>
+      <span>Período: <strong id="date-range-label"></strong></span>
+      <span>Fuente: <strong>Google Ads · Meta Ads · CRM (cotas/solas)</strong></span>
+    </div>
+  </header>
+
+  <div class="nav-links">
+    <a href="index.html" class="back-btn">
+      <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+      Dashboard Principal
+    </a>
+    <a href="cotas-solas.html" class="back-btn">
+      <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+      Cotas / Solas
+    </a>
+  </div>
+
+  <!-- KPI strip -->
+  <div class="kpi-grid" id="kpi-grid"></div>
+
+  <!-- Cross table -->
+  <div class="section">
+    <h2>
+      Tabla Cross: Campañas Paid → Códigos CRM
+      <span class="badge" id="cross-badge"></span>
+    </h2>
+    <div style="overflow-x:auto">
+      <table id="cross-table"><thead></thead><tbody></tbody></table>
+    </div>
+  </div>
+
+  <!-- Códigos sin campaña directa -->
+  <div class="section">
+    <h2>Códigos sin campaña directa <span class="badge">Atribución genérica</span></h2>
+    <p style="font-size:13px; color:#6A6A6A; margin-bottom:16px;">Códigos que están asignados a plataformas genéricas (Meta / Google) sin mapeo a una campaña específica de Google Ads o Meta Ads.</p>
+    <div style="overflow-x:auto">
+      <table id="generic-table"><thead></thead><tbody></tbody></table>
+    </div>
+  </div>
+
+  <!-- Bar chart: Cotas por Campaña Paid -->
+  <div class="chart-box">
+    <h3>Cotas por Campaña Paid <span style="font-size:12px; font-weight:400; color:#808285; margin-left:8px">· <span style="background:rgba(0,51,160,.08); padding:2px 7px; border-radius:4px; color:#0033A0; font-weight:600; font-size:11px">Google</span> · <span style="background:rgba(250,100,0,.12); padding:2px 7px; border-radius:4px; color:#FA6400; font-weight:600; font-size:11px">Meta</span></span></h3>
+    <canvas id="chart-cross-cotas" style="max-height:420px"></canvas>
+  </div>
+
+  <footer>
+    <div>Fuentes: Google Ads · Meta Ads · CRM (Base Cotas · Base Solas) · Moneda: ARS</div>
+    <div style="margin-top:6px">Answer Seguros · Grupo Galicia · Dashboard autogenerado</div>
+  </footer>
+</div>
+
+<script id="dashboard-data" type="application/json">__DATA_JSON__</script>
+
+<script>
+const d = JSON.parse(document.getElementById('dashboard-data').textContent);
+
+// ─── Helpers de formato ───────────────────────────────────────────────────────
+const fmtInt  = (n) => (n == null || isNaN(n)) ? '—' : Math.round(n).toLocaleString('es-AR');
+const fmtARS  = (n) => (n == null || isNaN(n)) ? '—' : '$' + Math.round(n).toLocaleString('es-AR');
+const fmtARSk = (n) => {
+  if (n == null || isNaN(n)) return '—';
+  if (n >= 1e9) return '$' + (n/1e9).toFixed(2) + 'B';
+  if (n >= 1e6) return '$' + (n/1e6).toFixed(1) + 'M';
+  if (n >= 1e3) return '$' + (n/1e3).toFixed(0) + 'K';
+  return '$' + Math.round(n);
+};
+const fmtPct  = (n) => (n == null || isNaN(n)) ? '—' : (n * 100).toFixed(1) + '%';
+
+const COLOR = {
+  blue: '#0033A0', blueLight: '#4D7CC7', blueSoft: '#7FA5E5',
+  orange: '#FA6400', orangeLight: '#FB8333', orangeSoft: '#FDA866',
+  good: '#10b981', bad: '#ef4444', gray: '#808285'
+};
+
+// ─── Constantes de filtrado ───────────────────────────────────────────────────
+const EXCLUDE_PLAT = new Set(['Orgánico', 'Own media', 'Own Media', 'DV']);
+
+// Plataformas genéricas (no se mapean a una campaña 1:1 de Ads)
+const GENERIC_META_PLATS   = new Set(['Meta']);
+const GENERIC_GOOGLE_PLATS = new Set(['Google', 'Google (sin atrib)']);
+
+// ─── Derivar tipo de campaña desde el nombre ──────────────────────────────────
+function campaignType(name) {
+  const n = name.toLowerCase();
+  if (/pmax|performance max|maxperformance/.test(n)) return { label: 'PMax',      cls: 'pmax'   };
+  if (/demand.?gen/.test(n))                          return { label: 'DemandGen', cls: 'dgen'   };
+  if (/a\/b.?test|test/.test(n))                      return { label: 'A/B Test',  cls: 'test'   };
+  if (/search/.test(n))                               return { label: 'Search',    cls: 'search' };
+  if (/conversiones|conv/.test(n))                    return { label: 'Conv',      cls: 'conv'   };
+  if (/retargeting|remarketing/.test(n))              return { label: 'Retarget',  cls: 'dgen'   };
+  return { label: 'Otro', cls: '' };
+}
+
+// ─── Construir mapa plataforma → códigos ─────────────────────────────────────
+function buildPlatMap(data) {
+  const map = {};
+  const bcc = data.cotas.by_campaign_code || {};
+  for (const [cod, info] of Object.entries(bcc)) {
+    if (EXCLUDE_PLAT.has(info.plataforma)) continue;
+    if (!map[info.plataforma]) map[info.plataforma] = [];
+    map[info.plataforma].push({ cod, campaign: info.campaign, cotas: info.cotas });
+  }
+  return map;
+}
+
+// ─── Campañas Auto filtradas ──────────────────────────────────────────────────
+const AUTO_CAMPAIGNS_GA = (d.google_ads || []).filter(c =>
+  /auto/i.test(c.campaign) && c.campaign !== 'Search - Movilidad - Segment  - AR'
+);
+const AUTO_CAMPAIGNS_META = (d.meta_ads || []).filter(c =>
+  /auto/i.test(c.campaign)
+);
+
+// ─── Construir filas del cross ────────────────────────────────────────────────
+function buildCrossRows(data) {
+  const platMap = buildPlatMap(data);
+  const solasP  = data.solas.by_platform || {};
+  const cotasP  = data.cotas.by_platform || {};
+  const rows    = [];
+
+  // Función que construye una fila dado una lista de campañas y fuente
+  const processAds = (campaigns, source) => {
+    for (const camp of campaigns) {
+      // La plataforma en CRM suele coincidir con el campo campaign de Ads
+      // o con el campo plataforma de by_campaign_code
+      const platName = camp.campaign;
+
+      // Buscar en platMap por nombre exacto o por contención
+      let codes = platMap[platName] || null;
+      // Fallback: buscar plataformas cuyo nombre contiene el nombre de la campaña
+      if (!codes) {
+        for (const [plat, c] of Object.entries(platMap)) {
+          if (GENERIC_META_PLATS.has(plat) || GENERIC_GOOGLE_PLATS.has(plat)) continue;
+          if (plat === platName) { codes = c; break; }
+        }
+      }
+
+      const codesArr = codes || [];
+      const cotas    = codesArr.reduce((s, c) => s + c.cotas, 0);
+
+      // Solas: usar by_platform[platName] si existe; si no, sumar proporcional no aplica aquí
+      const solas = solasP[platName] || 0;
+
+      const spend       = camp.spend       || 0;
+      const conversions = camp.conversions || camp.results || 0;
+      const tipo        = campaignType(camp.campaign);
+      const conv        = cotas ? solas / cotas : null;
+      const cpoCota     = cotas && spend ? spend / cotas  : null;
+      const cpoSola     = solas && spend ? spend / solas  : null;
+      const capturePct  = (conversions > 0 && cotas > 0) ? cotas / conversions : null;
+
+      rows.push({
+        source,
+        campaign: camp.campaign,
+        tipo,
+        codes: codesArr,
+        cotas,
+        solas,
+        spend,
+        conversions,
+        conv,
+        cpoCota,
+        cpoSola,
+        capturePct
+      });
+    }
+  };
+
+  processAds(AUTO_CAMPAIGNS_GA,   'Google');
+  processAds(AUTO_CAMPAIGNS_META, 'Meta');
+
+  // Ordenar por cotas desc
+  rows.sort((a, b) => b.cotas - a.cotas);
+  return rows;
+}
+
+// ─── Códigos genéricos ────────────────────────────────────────────────────────
+function buildGenericRows(data) {
+  const bcc = data.cotas.by_campaign_code || {};
+  const solasP = data.solas.by_platform || {};
+  const rows = [];
+  for (const [cod, info] of Object.entries(bcc)) {
+    if (GENERIC_META_PLATS.has(info.plataforma) || GENERIC_GOOGLE_PLATS.has(info.plataforma)) {
+      const src = GENERIC_META_PLATS.has(info.plataforma) ? 'Meta' : 'Google';
+      rows.push({ cod, campaign: info.campaign, plataforma: info.plataforma, source: src, cotas: info.cotas });
+    }
+  }
+  rows.sort((a, b) => b.cotas - a.cotas);
+  return rows;
+}
+
+// ─── KPIs ─────────────────────────────────────────────────────────────────────
+function renderKPIs(data, crossRows) {
+  const totalCotasPaid = crossRows.reduce((s, r) => s + r.cotas, 0);
+  const totalSolasPaid = crossRows.reduce((s, r) => s + r.solas, 0);
+  const convGlobal     = totalCotasPaid ? totalSolasPaid / totalCotasPaid : null;
+  const gSpend         = AUTO_CAMPAIGNS_GA.reduce((s, c) => s + (c.spend || 0), 0);
+  const mSpend         = AUTO_CAMPAIGNS_META.reduce((s, c) => s + (c.spend || 0), 0);
+  const totalSpend     = gSpend + mSpend;
+
+  const cards = [
+    { label: 'Cotas Paid (Auto)',   value: fmtInt(totalCotasPaid),  cls: 'blue',   sub: 'Cotas de campañas pagadas' },
+    { label: 'Solas Paid (Auto)',   value: fmtInt(totalSolasPaid),  cls: 'orange', sub: 'Solas de campañas pagadas' },
+    { label: 'Conv% Global',        value: fmtPct(convGlobal),      cls: 'green',  sub: 'Solas / Cotas total paid' },
+    { label: 'Gasto Google (Auto)', value: fmtARSk(gSpend),         cls: 'g-card', sub: fmtInt(AUTO_CAMPAIGNS_GA.length) + ' campañas Auto' },
+    { label: 'Gasto Meta (Auto)',   value: fmtARSk(mSpend),         cls: 'm-card', sub: fmtInt(AUTO_CAMPAIGNS_META.length) + ' campañas Auto' },
+    { label: 'Gasto Combinado',     value: fmtARSk(totalSpend),     cls: 'mid',    sub: 'Google + Meta (Auto)' }
+  ];
+
+  document.getElementById('kpi-grid').innerHTML = cards.map(c => `
+    <div class="kpi-card ${c.cls}">
+      <div class="label">${c.label}</div>
+      <div class="value">${c.value}</div>
+      <div class="sub">${c.sub}</div>
+    </div>`).join('');
+}
+
+// ─── Tabla Cross ──────────────────────────────────────────────────────────────
+function renderCrossTable(crossRows) {
+  const totalCotas = crossRows.reduce((s, r) => s + r.cotas, 0);
+  const totalSolas = crossRows.reduce((s, r) => s + r.solas, 0);
+  const totalSpend = crossRows.reduce((s, r) => s + r.spend, 0);
+  const totalConv  = crossRows.reduce((s, r) => s + r.conversions, 0);
+
+  document.getElementById('cross-badge').textContent =
+    `${crossRows.length} campañas · ${fmtInt(totalCotas)} cotas`;
+
+  const head = `<tr>
+    <th>#</th>
+    <th>Fuente</th>
+    <th style="min-width:200px">Campaña Paid</th>
+    <th>Tipo</th>
+    <th style="min-width:140px">Códigos URL</th>
+    <th class="num">Cotas</th>
+    <th class="num">% Total</th>
+    <th class="num">Solas</th>
+    <th class="num">Conv%</th>
+    <th class="num">Gasto</th>
+    <th class="num">$/Cota</th>
+    <th class="num">$/Sola</th>
+    <th class="num">Capture%</th>
+  </tr>`;
+
+  const body = crossRows.map((r, i) => {
+    const srcCls   = r.source === 'Google' ? 'google' : 'meta';
+    const tipoCls  = r.tipo.cls;
+    const pctTot   = totalCotas ? r.cotas / totalCotas : null;
+    const convCls  = r.conv != null ? (r.conv > 0.12 ? 'good' : r.conv < 0.05 ? 'warning' : '') : '';
+    const capCls   = r.capturePct != null ? (r.capturePct > 0.8 ? 'good' : r.capturePct < 0.3 ? 'warning' : '') : '';
+
+    const codesHtml = r.codes.length
+      ? r.codes.map(c => `<span class="cod-tag" title="${c.campaign}">${c.cod}</span>`).join(' ')
+      : '<span style="color:#aaa;font-size:11px">—</span>';
+
+    return `<tr>
+      <td style="color:#808285">${i + 1}</td>
+      <td><span class="badge-source ${srcCls}">${r.source}</span></td>
+      <td style="font-size:12px; font-weight:600; max-width:240px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap" title="${r.campaign}">${r.campaign}</td>
+      <td><span class="badge-tipo ${tipoCls}">${r.tipo.label}</span></td>
+      <td class="codes-cell">${codesHtml}</td>
+      <td class="num blue">${fmtInt(r.cotas)}</td>
+      <td class="num">${fmtPct(pctTot)}</td>
+      <td class="num orange">${fmtInt(r.solas)}</td>
+      <td class="num ${convCls}">${fmtPct(r.conv)}</td>
+      <td class="num">${r.spend ? fmtARSk(r.spend) : '—'}</td>
+      <td class="num">${r.cpoCota ? fmtARS(r.cpoCota) : '—'}</td>
+      <td class="num">${r.cpoSola ? fmtARS(r.cpoSola) : '—'}</td>
+      <td class="num ${capCls}">${fmtPct(r.capturePct)}</td>
+    </tr>`;
+  }).join('');
+
+  const convTotal  = totalCotas ? totalSolas / totalCotas : null;
+  const cpaTotal   = totalCotas && totalSpend ? totalSpend / totalCotas : null;
+  const cplTotal   = totalSolas && totalSpend ? totalSpend / totalSolas : null;
+  const capTotal   = totalConv  && totalCotas ? totalCotas / totalConv  : null;
+
+  const footer = `<tr>
+    <td colspan="5" class="total-row">TOTAL (${crossRows.length} campañas)</td>
+    <td class="num total-row blue">${fmtInt(totalCotas)}</td>
+    <td class="num total-row">100%</td>
+    <td class="num total-row orange">${fmtInt(totalSolas)}</td>
+    <td class="num total-row">${fmtPct(convTotal)}</td>
+    <td class="num total-row">${fmtARSk(totalSpend)}</td>
+    <td class="num total-row">${cpaTotal ? fmtARS(cpaTotal) : '—'}</td>
+    <td class="num total-row">${cplTotal ? fmtARS(cplTotal) : '—'}</td>
+    <td class="num total-row">${fmtPct(capTotal)}</td>
+  </tr>`;
+
+  const note = `<tr class="note-row"><td colspan="13">
+    * Cotas y Solas provienen del CRM (campo <code>plataforma</code> de cada código).
+    Capture% = Cotas CRM / Conversiones reportadas por la plataforma.
+    $/Cota y $/Sola usan el gasto total de la campaña Ads.
+  </td></tr>`;
+
+  const t = document.getElementById('cross-table');
+  t.querySelector('thead').innerHTML = head;
+  t.querySelector('tbody').innerHTML = body + footer + note;
+}
+
+// ─── Tabla genérica ───────────────────────────────────────────────────────────
+function renderGenericTable(genericRows) {
+  if (!genericRows.length) {
+    document.getElementById('generic-table').innerHTML =
+      '<tbody><tr><td style="color:#808285;padding:16px">No se encontraron códigos con atribución genérica en los datos actuales.</td></tr></tbody>';
+    return;
+  }
+
+  const totalCotas = genericRows.reduce((s, r) => s + r.cotas, 0);
+
+  const head = `<tr>
+    <th>#</th>
+    <th>Fuente</th>
+    <th>Plataforma CRM</th>
+    <th>Código URL</th>
+    <th style="min-width:200px">Nombre campaña CRM</th>
+    <th class="num">Cotas</th>
+    <th class="num">% del total genérico</th>
+  </tr>`;
+
+  const body = genericRows.map((r, i) => {
+    const srcCls = r.source === 'Meta' ? 'meta' : 'google';
+    return `<tr>
+      <td style="color:#808285">${i + 1}</td>
+      <td><span class="badge-source ${srcCls}">${r.source}</span></td>
+      <td style="font-size:12px; color:#6A6A6A">${r.plataforma}</td>
+      <td><span class="cod-tag">${r.cod}</span></td>
+      <td style="font-size:12px; max-width:280px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap" title="${r.campaign}">${r.campaign}</td>
+      <td class="num blue">${fmtInt(r.cotas)}</td>
+      <td class="num">${fmtPct(totalCotas ? r.cotas / totalCotas : null)}</td>
+    </tr>`;
+  }).join('');
+
+  const footer = `<tr>
+    <td colspan="5" class="total-row">TOTAL</td>
+    <td class="num total-row blue">${fmtInt(totalCotas)}</td>
+    <td class="num total-row">100%</td>
+  </tr>`;
+
+  const t = document.getElementById('generic-table');
+  t.querySelector('thead').innerHTML = head;
+  t.querySelector('tbody').innerHTML = body + footer;
+}
+
+// ─── Bar chart horizontal ─────────────────────────────────────────────────────
+let chartCross = null;
+function renderChart(crossRows) {
+  chartCross?.destroy?.();
+  if (!crossRows.length) return;
+
+  // Ordenado por cotas desc (ya viene así)
+  const labels = crossRows.map(r => {
+    // Acortar label para que quepa
+    const MAX = 42;
+    return r.campaign.length > MAX ? r.campaign.slice(0, MAX) + '…' : r.campaign;
+  });
+  const colors = crossRows.map(r => r.source === 'Google' ? COLOR.blue : COLOR.orange);
+  const cotas  = crossRows.map(r => r.cotas);
+
+  chartCross = new Chart(document.getElementById('chart-cross-cotas'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Cotas',
+        data: cotas,
+        backgroundColor: colors,
+        borderRadius: 4
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => {
+              const r = crossRows[ctx.dataIndex];
+              return [
+                ` Cotas: ${fmtInt(r.cotas)}`,
+                ` Solas: ${fmtInt(r.solas)}`,
+                ` Conv%: ${fmtPct(r.conv)}`,
+                ` Gasto: ${fmtARSk(r.spend)}`
+              ];
+            }
+          }
+        }
+      },
+      scales: {
+        x: { grid: { color: '#e5e9f0' }, ticks: { font: { size: 11 } } },
+        y: { grid: { display: false }, ticks: { font: { size: 11 } } }
+      }
+    }
+  });
+
+  // Ajustar altura del canvas dinámicamente
+  const canvasEl = document.getElementById('chart-cross-cotas');
+  const h = Math.max(320, crossRows.length * 38);
+  canvasEl.style.maxHeight = h + 'px';
+  canvasEl.parentElement.style.minHeight = (h + 64) + 'px';
+}
+
+// ─── Render principal ─────────────────────────────────────────────────────────
+function renderAll(data) {
+  const crossRows  = buildCrossRows(data);
+  const genericRows = buildGenericRows(data);
+  renderKPIs(data, crossRows);
+  renderCrossTable(crossRows);
+  renderGenericTable(genericRows);
+  renderChart(crossRows);
+}
+
+// ─── Fecha y meta ─────────────────────────────────────────────────────────────
+document.getElementById('generated-at').textContent =
+  d.generated_at ? new Date(d.generated_at).toLocaleString('es-AR') : new Date().toLocaleString('es-AR');
+
+const rangeLabel = d.date_range?.label
+  || (d.date_range?.from && d.date_range?.to
+      ? `${d.date_range.from} — ${d.date_range.to}`
+      : 'Período completo');
+document.getElementById('date-range-label').textContent = rangeLabel;
+
+// ─── Inicializar ──────────────────────────────────────────────────────────────
+renderAll(d);
+</script>
+</body>
+</html>

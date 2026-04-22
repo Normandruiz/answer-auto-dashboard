@@ -287,7 +287,7 @@ function buildCrossRows(d) {
     const solas = d.solas.by_platform[plat] || 0;
     rows.push({ src: 'Google', campaign: c.campaign, spend: c.spend, conv: c.conversions, cotas, solas });
   }
-  for (const c of d.meta_ads) {
+  for (const c of d.meta_ads.filter(c => /auto/i.test(c.campaign))) {
     const plat = MAPPING_M[c.campaign] || c.campaign;
     const cotas = d.cotas.by_platform[plat] || 0;
     const solas = d.solas.by_platform[plat] || 0;
