@@ -95,9 +95,18 @@ footer { text-align: center; padding: 24px; color: #808285; font-size: 12px; }
 .badge-plat.meta    { background: rgba(250,100,0,.12);  color: #FA6400; }
 .badge-plat.ambos   { background: rgba(77,124,199,.1);  color: #4D7CC7; }
 
+.controls-bar { display: flex; gap: 20px; flex-wrap: wrap; align-items: center; background: #ffffff; border: 1px solid #e5e9f0; border-radius: 12px; padding: 18px 24px; margin-bottom: 24px; box-shadow: 0 1px 3px rgba(0,51,160,.04); border-left: 4px solid #4D7CC7; }
+.ctrl-group { display: flex; flex-direction: column; gap: 4px; }
+.ctrl-label { font-size: 11px; color: #808285; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; }
+.ctrl-sep { font-size: 22px; color: #d1d5db; margin-top: 6px; }
+.date-picker { border: 1.5px solid #e5e9f0; border-radius: 8px; padding: 9px 13px; font-size: 14px; font-weight: 600; color: #2B2B2B; background: #f8fafd; outline: none; cursor: pointer; transition: border-color .15s; }
+.date-picker:focus { border-color: #4D7CC7; box-shadow: 0 0 0 3px rgba(77,124,199,.15); }
+.days-pill { background: linear-gradient(90deg,#0033A0,#4D7CC7); color: #fff; font-size: 13px; font-weight: 700; padding: 10px 18px; border-radius: 8px; white-space: nowrap; }
+.ctrl-note { font-size: 11px; color: #808285; margin-left: auto; max-width: 240px; line-height: 1.4; }
+
 @media (max-width: 1200px) { .kpi-grid { grid-template-columns: repeat(3, 1fr); } }
-@media (max-width: 640px)  { .kpi-grid { grid-template-columns: 1fr 1fr; } }
-@media print { body { background: #ffffff !important; } .nav-links { display: none; } }
+@media (max-width: 640px)  { .kpi-grid { grid-template-columns: 1fr 1fr; } .controls-bar { flex-direction: column; align-items: flex-start; } .ctrl-note { margin-left: 0; } }
+@media print { body { background: #ffffff !important; } .nav-links, .controls-bar { display: none; } }
 </style>
 </head>
 <body>
@@ -128,6 +137,27 @@ footer { text-align: center; padding: 24px; color: #808285; font-size: 12px; }
       <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
       Cotas / Solas
     </a>
+    <a href="proyeccion.html" class="back-btn" style="background:linear-gradient(90deg,#10b981,#059669);border-color:#10b981;color:#fff;">
+      <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"/></svg>
+      Proyección
+    </a>
+  </div>
+
+  <!-- Selector de período -->
+  <div class="controls-bar">
+    <div class="ctrl-group">
+      <div class="ctrl-label">Desde</div>
+      <input type="date" id="cross-date-from" class="date-picker">
+    </div>
+    <div class="ctrl-sep">→</div>
+    <div class="ctrl-group">
+      <div class="ctrl-label">Hasta</div>
+      <input type="date" id="cross-date-to" class="date-picker">
+    </div>
+    <div class="days-pill" id="cross-days-pill">1 día</div>
+    <div class="ctrl-note">
+      Los valores absolutos (cotas, solas, gasto) se escalan por los días del período. Conv%, CPO y Capture% no cambian.
+    </div>
   </div>
 
   <!-- KPI strip -->
@@ -695,15 +725,33 @@ function renderRecommendations(crossRows, genericRows) {
     </div>`).join('');
 }
 
+// ─── Escalar filas por días ───────────────────────────────────────────────────
+function scaleRows(rows, days) {
+  if (days === 1) return rows;
+  return rows.map(r => ({
+    ...r,
+    cotas:      r.cotas      * days,
+    solas:      r.solas      * days,
+    spend:      r.spend      * days,
+    conversions:r.conversions* days,
+    campCotas:  r.campCotas  * days,
+    campSolas:  r.campSolas  * days
+    // conv, cpoCota, cpoSola, capturePct son ratios — no cambian con escala uniforme
+  }));
+}
+
 // ─── Render principal ─────────────────────────────────────────────────────────
-function renderAll(data) {
-  const crossRows  = buildCrossRows(data);
+const _BASE_CROSS_ROWS   = null; // se inicializa en renderAll la primera vez
+function renderAll(data, days) {
+  days = days || 1;
+  const crossRows   = buildCrossRows(data);
   const genericRows = buildGenericRows(data);
-  renderKPIs(data, crossRows);
-  renderCrossTable(crossRows);
+  const scaledRows  = scaleRows(crossRows, days);
+  renderKPIs(data, scaledRows);
+  renderCrossTable(scaledRows);
   renderGenericTable(genericRows);
-  renderChart(crossRows);
-  renderRecommendations(crossRows, genericRows);
+  renderChart(scaledRows);
+  renderRecommendations(crossRows, genericRows); // recomendaciones usan tasas diarias base
 }
 
 // ─── Fecha y meta ─────────────────────────────────────────────────────────────
@@ -716,8 +764,41 @@ const rangeLabel = d.date_range?.label
       : 'Período completo');
 document.getElementById('date-range-label').textContent = rangeLabel;
 
-// ─── Inicializar ──────────────────────────────────────────────────────────────
-renderAll(d);
+// ─── Inicializar con controles de fecha ──────────────────────────────────────
+const DATA_DATE = d.date_range?.from || d.date_range?.to || new Date().toISOString().slice(0,10);
+
+const _today   = new Date();
+const _lastDay = new Date(_today.getFullYear(), _today.getMonth() + 1, 0).toISOString().slice(0,10);
+
+const _fromInput = document.getElementById('cross-date-from');
+const _toInput   = document.getElementById('cross-date-to');
+const _daysPill  = document.getElementById('cross-days-pill');
+
+_fromInput.value = DATA_DATE;
+_fromInput.max   = _lastDay;
+_toInput.value   = _lastDay;
+_toInput.min     = DATA_DATE;
+
+const calcCrossDays = () => {
+  const from = new Date(_fromInput.value);
+  const to   = new Date(_toInput.value);
+  if (isNaN(from) || isNaN(to) || to < from) return 1;
+  return Math.max(1, Math.round((to - from) / 86400000) + 1);
+};
+
+const updateCross = () => {
+  const days = calcCrossDays();
+  _daysPill.textContent = days === 1 ? '1 día' : `${days} días`;
+  renderAll(d, days);
+};
+
+_fromInput.addEventListener('change', () => {
+  if (new Date(_toInput.value) < new Date(_fromInput.value)) _toInput.value = _fromInput.value;
+  updateCross();
+});
+_toInput.addEventListener('change', updateCross);
+
+updateCross();
 </script>
 </body>
 </html>
