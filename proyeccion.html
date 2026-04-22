@@ -254,7 +254,7 @@ td.tot-green  { color: #10b981; font-weight: 700; }
       <table id="proj-table"><thead></thead><tbody></tbody></table>
     </div>
     <div style="font-size:11px;color:#808285;margin-top:10px;line-height:1.5">
-      * <strong>Columnas azules (MTD)</strong> = acumulado real del período de datos. <strong>Columnas verdes claras (proy.)</strong> = estimado días futuros. <strong>Columnas verdes oscuras (TOTAL)</strong> = MTD real + proyectado.
+      * La barra superior y los KPIs usan <strong>d.cotas.total / d.solas.total</strong> (fuente de verdad CRM = todas las fuentes). La tabla muestra el detalle por campaña de paid media (Google + Meta); su suma es menor porque excluye cotas orgánicas, Own Media y atribución a nivel plataforma.
       <br>* <strong>Capture%</strong> = Cotas CRM / Conversiones plataforma (indica calidad de atribución).
       <br>* <strong>Prob. Cierre</strong> = Conv% (Solas/Cotas) usado como probabilidad de emisión de póliza.
     </div>
@@ -351,6 +351,16 @@ const EXCLUDE_CAMP = 'Search - Movilidad - Segment  - AR';
 const GA_AUTO   = (d.google_ads || []).filter(c => /auto/i.test(c.campaign) && c.campaign !== EXCLUDE_CAMP);
 const META_AUTO = (d.meta_ads   || []).filter(c => /auto/i.test(c.campaign));
 
+// ─── Totales CRM (fuente de verdad: incluye orgánico, own media, todas las fuentes) ───
+// Usar d.cotas.total y d.solas.total porque algunos cotas vienen de fuentes
+// que no coinciden 1:1 con nombres de campañas (ej. "Google", "Meta" nivel plataforma, Orgánico)
+const TOTAL_MTD_COTAS = d.cotas?.total || 0;
+const TOTAL_MTD_SOLAS = d.solas?.total || 0;
+const TOTAL_MTD_SPEND = [...GA_AUTO, ...META_AUTO].reduce((s,c) => s + (c.spend||0), 0);
+const DAILY_COTAS = TOTAL_MTD_COTAS / DATASET_DAYS;
+const DAILY_SOLAS = TOTAL_MTD_SOLAS / DATASET_DAYS;
+const DAILY_SPEND = TOTAL_MTD_SPEND / DATASET_DAYS;
+
 function buildBaseRows() {
   const cotasP = d.cotas?.by_platform || {};
   const solasP = d.solas?.by_platform || {};
@@ -388,6 +398,7 @@ let chartCotas = null, chartSolas = null;
 
 // ─── Render (re-ejecuta en cada cambio) ──────────────────────────────────────
 function renderAll(days, mult) {
+  // Filas por campaña (para tabla y gráficos — paid media con atribución por campaña)
   const rows = BASE_ROWS.map(r => {
     const pSpend = r.dailySpend * days * mult;
     const pCotas = r.dailyCotas * days * mult;
@@ -404,8 +415,19 @@ function renderAll(days, mult) {
     };
   });
 
-  renderComparison(rows);
-  renderKPIs(rows, days);
+  // Totales globales (usa d.cotas.total / d.solas.total = fuente de verdad CRM)
+  const totals = {
+    mtdCotas: TOTAL_MTD_COTAS, mtdSolas: TOTAL_MTD_SOLAS, mtdSpend: TOTAL_MTD_SPEND,
+    pCotas:   DAILY_COTAS * days * mult,
+    pSolas:   DAILY_SOLAS * days * mult,
+    pSpend:   DAILY_SPEND * days * mult,
+    get tCotas() { return this.mtdCotas + this.pCotas; },
+    get tSolas() { return this.mtdSolas + this.pSolas; },
+    get tSpend() { return this.mtdSpend + this.pSpend; }
+  };
+
+  renderComparison(totals);
+  renderKPIs(totals, days);
   renderTable(rows, days);
   renderPlatSummary(rows, 'Google', 'google-summary');
   renderPlatSummary(rows, 'Meta',   'meta-summary');
@@ -413,18 +435,8 @@ function renderAll(days, mult) {
 }
 
 // Barra comparativa MTD | + Proy | = Total
-function renderComparison(rows) {
-  const mtdSpend = rows.reduce((s,r) => s + r.mtdSpend, 0);
-  const mtdCotas = rows.reduce((s,r) => s + r.mtdCotas, 0);
-  const mtdSolas = rows.reduce((s,r) => s + r.mtdSolas, 0);
-
-  const pSpend = rows.reduce((s,r) => s + r.pSpend, 0);
-  const pCotas = rows.reduce((s,r) => s + r.pCotas, 0);
-  const pSolas = rows.reduce((s,r) => s + r.pSolas, 0);
-
-  const tSpend = rows.reduce((s,r) => s + r.tSpend, 0);
-  const tCotas = rows.reduce((s,r) => s + r.tCotas, 0);
-  const tSolas = rows.reduce((s,r) => s + r.tSolas, 0);
+function renderComparison(t) {
+  const { mtdSpend, mtdCotas, mtdSolas, pSpend, pCotas, pSolas, tSpend, tCotas, tSolas } = t;
 
   const mk = (metrics) => metrics.map(m =>
     `<div class="comp-metric"><div class="cm-label">${m.label}</div><div class="cm-val ${m.cls||''}">${m.val}</div></div>`
@@ -471,23 +483,18 @@ function renderComparison(rows) {
     </div>`;
 }
 
-// KPIs — muestran Total Estimado (MTD real + proyectado)
-function renderKPIs(rows, days) {
-  const pSpend = rows.reduce((s, r) => s + r.pSpend, 0);
-  const pCotas = rows.reduce((s, r) => s + r.pCotas, 0);
-  const pSolas = rows.reduce((s, r) => s + r.pSolas, 0);
-  const totSpend = rows.reduce((s, r) => s + r.tSpend, 0);
-  const totCotas = rows.reduce((s, r) => s + r.tCotas, 0);
-  const totSolas = rows.reduce((s, r) => s + r.tSolas, 0);
-  const convR  = totCotas > 0 ? totSolas / totCotas : null;
-  const cpo    = totSolas > 0 ? totSpend / totSolas : null;
+// KPIs — muestran Total Estimado (MTD real CRM + proyectado)
+function renderKPIs(t, days) {
+  const { pSpend, pCotas, pSolas, tSpend, tCotas, tSolas } = t;
+  const convR = tCotas > 0 ? tSolas / tCotas : null;
+  const cpo   = tSolas > 0 ? tSpend / tSolas : null;
   document.getElementById('kpi-grid').innerHTML = [
-    { label: 'Gasto total est.',     value: fmtARSk(totSpend), cls: 'mid',    sub: `MTD ${fmtARSk(totSpend-pSpend)} + proy. ${fmtARSk(pSpend)}` },
-    { label: 'Cotas totales est.',   value: fmtInt(totCotas),  cls: 'blue',   sub: `MTD ${fmtInt(totCotas-pCotas)} + proy. ${fmtInt(pCotas)}` },
-    { label: 'Solas totales est.',   value: fmtInt(totSolas),  cls: 'orange', sub: `MTD ${fmtInt(totSolas-pSolas)} + proy. ${fmtInt(pSolas)}` },
-    { label: 'Cotas proyectadas',    value: fmtInt(pCotas),    cls: 'mid',    sub: `${fmtInt(pCotas/days)}/día × ${days} días futuros` },
-    { label: 'Prob. cierre (Conv%)', value: fmtPct(convR),     cls: 'green',  sub: 'Solas totales / Cotas totales' },
-    { label: '$/Sola total est.',    value: fmtARS(cpo),       cls: 'mid',    sub: 'Gasto total / Solas totales est.' }
+    { label: 'Gasto total est.',     value: fmtARSk(tSpend), cls: 'mid',    sub: `MTD ${fmtARSk(tSpend-pSpend)} + proy. ${fmtARSk(pSpend)}` },
+    { label: 'Cotas totales est.',   value: fmtInt(tCotas),  cls: 'blue',   sub: `MTD ${fmtInt(tCotas-pCotas)} + proy. ${fmtInt(pCotas)}` },
+    { label: 'Solas totales est.',   value: fmtInt(tSolas),  cls: 'orange', sub: `MTD ${fmtInt(tSolas-pSolas)} + proy. ${fmtInt(pSolas)}` },
+    { label: 'Cotas proyectadas',    value: fmtInt(pCotas),  cls: 'mid',    sub: `${fmtInt(pCotas/days)}/día × ${days} días futuros` },
+    { label: 'Prob. cierre (Conv%)', value: fmtPct(convR),   cls: 'green',  sub: 'Solas totales / Cotas totales' },
+    { label: '$/Sola total est.',    value: fmtARS(cpo),     cls: 'mid',    sub: 'Gasto total / Solas totales est.' }
   ].map(c => `<div class="kpi-card ${c.cls}"><div class="label">${c.label}</div><div class="value">${c.value}</div><div class="sub">${c.sub}</div></div>`).join('');
 }
 
