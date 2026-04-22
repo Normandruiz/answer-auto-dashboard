@@ -103,6 +103,32 @@ footer { text-align: center; padding: 24px; color: #808285; font-size: 12px; }
 @media (max-width: 1200px) { .kpi-grid { grid-template-columns: repeat(3,1fr); } .chart-row { grid-template-columns: 1fr; } .plat-grid { grid-template-columns: 1fr; } }
 @media (max-width: 640px)  { .kpi-grid { grid-template-columns: 1fr 1fr; } .controls-bar { flex-direction: column; align-items: flex-start; } .ctrl-note { margin-left: 0; } }
 @media print { body { background: #fff !important; } .nav-links, .controls-bar { display: none; } }
+
+/* ── Barra comparativa MTD Real | + Proyección | = Total Estimado ── */
+.comp-bar { display: grid; grid-template-columns: 1fr auto 1fr auto 1fr; background: #fff; border: 1px solid #e5e9f0; border-radius: 12px; margin-bottom: 24px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,51,160,.04); }
+.comp-panel { padding: 20px 28px; }
+.comp-panel.real  { border-right: 1px solid #e5e9f0; }
+.comp-panel.proj  { border-right: 1px solid #e5e9f0; }
+.comp-panel.total { background: #f0fdf8; }
+.comp-op { display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: 200; color: #d1d5db; padding: 0 4px; }
+.comp-header { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 14px; display: flex; align-items: center; gap: 7px; }
+.comp-header.real  { color: #4D7CC7; }
+.comp-header.proj  { color: #FA6400; }
+.comp-header.total { color: #10b981; }
+.comp-metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.comp-metric .cm-label { font-size: 10px; color: #808285; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 4px; }
+.comp-metric .cm-val   { font-size: 20px; font-weight: 700; color: #2B2B2B; }
+.comp-metric .cm-val.blue   { color: #0033A0; }
+.comp-metric .cm-val.orange { color: #FA6400; }
+.comp-metric .cm-val.green  { color: #10b981; }
+.comp-metric .cm-val.mid    { color: #4D7CC7; }
+@media (max-width: 1100px) { .comp-bar { grid-template-columns: 1fr; } .comp-op { display: none; } .comp-panel.real, .comp-panel.proj { border-right: none; border-bottom: 1px solid #e5e9f0; } }
+@media (max-width: 640px)  { .comp-metrics { grid-template-columns: 1fr 1fr; } }
+th.mtd-col  { background: rgba(77,124,199,.1); color: #4D7CC7; }
+th.tot-col  { background: rgba(16,185,129,.12); color: #059669; }
+td.tot-blue   { color: #0033A0; font-weight: 700; }
+td.tot-orange { color: #FA6400; font-weight: 700; }
+td.tot-green  { color: #10b981; font-weight: 700; }
 </style>
 </head>
 <body>
@@ -211,6 +237,9 @@ footer { text-align: center; padding: 24px; color: #808285; font-size: 12px; }
     </div>
   </div>
 
+  <!-- Barra comparativa MTD Real | + Proyección | = Total Estimado -->
+  <div class="comp-bar" id="comp-bar"></div>
+
   <!-- KPIs -->
   <div class="kpi-grid" id="kpi-grid"></div>
 
@@ -225,7 +254,7 @@ footer { text-align: center; padding: 24px; color: #808285; font-size: 12px; }
       <table id="proj-table"><thead></thead><tbody></tbody></table>
     </div>
     <div style="font-size:11px;color:#808285;margin-top:10px;line-height:1.5">
-      * <strong>Columnas resaltadas en verde</strong> = valores proyectados al período seleccionado. Columnas en gris = tasa diaria normalizada (acumulado MTD ÷ días período).
+      * <strong>Columnas azules (MTD)</strong> = acumulado real del período de datos. <strong>Columnas verdes claras (proy.)</strong> = estimado días futuros. <strong>Columnas verdes oscuras (TOTAL)</strong> = MTD real + proyectado.
       <br>* <strong>Capture%</strong> = Cotas CRM / Conversiones plataforma (indica calidad de atribución).
       <br>* <strong>Prob. Cierre</strong> = Conv% (Solas/Cotas) usado como probabilidad de emisión de póliza.
     </div>
@@ -330,13 +359,18 @@ function buildBaseRows() {
   const process = (camps, source) => {
     for (const camp of camps) {
       // Los datos son acumulados del período → normalizar a tasa DIARIA
-      const dailySpend = (camp.spend || 0) / DATASET_DAYS;
-      const dailyConv  = (camp.conversions || camp.results || 0) / DATASET_DAYS;
-      const dailyCotas = (cotasP[camp.campaign] || 0) / DATASET_DAYS;
-      const dailySolas = (solasP[camp.campaign] || 0) / DATASET_DAYS;
+      const mtdSpend = camp.spend || 0;
+      const mtdConv  = camp.conversions || camp.results || 0;
+      const mtdCotas = cotasP[camp.campaign] || 0;
+      const mtdSolas = solasP[camp.campaign] || 0;
+      const dailySpend = mtdSpend / DATASET_DAYS;
+      const dailyConv  = mtdConv  / DATASET_DAYS;
+      const dailyCotas = mtdCotas / DATASET_DAYS;
+      const dailySolas = mtdSolas / DATASET_DAYS;
       rows.push({
         source, campaign: camp.campaign,
         tipo: campaignType(camp.campaign),
+        mtdSpend, mtdConv, mtdCotas, mtdSolas,
         dailySpend, dailyConv, dailyCotas, dailySolas,
         captureRate: dailyConv  > 0 ? dailyCotas / dailyConv  : null,
         convRate:    dailyCotas > 0 ? dailySolas / dailyCotas : null
@@ -358,13 +392,19 @@ function renderAll(days, mult) {
     const pSpend = r.dailySpend * days * mult;
     const pCotas = r.dailyCotas * days * mult;
     const pSolas = r.dailySolas * days * mult;
+    const pConv  = r.dailyConv  * days * mult;
+    const tSpend = r.mtdSpend + pSpend;
+    const tCotas = r.mtdCotas + pCotas;
+    const tSolas = r.mtdSolas + pSolas;
     return { ...r,
-      pSpend, pConv: r.dailyConv * days * mult,
-      pCotas, pSolas,
-      pCpoSola: pSolas > 0 ? pSpend / pSolas : null
+      pSpend, pConv, pCotas, pSolas,
+      pCpoSola: pSolas > 0 ? pSpend / pSolas : null,
+      tSpend, tCotas, tSolas,
+      tCpoSola: tSolas > 0 ? tSpend / tSolas : null
     };
   });
 
+  renderComparison(rows);
   renderKPIs(rows, days);
   renderTable(rows, days);
   renderPlatSummary(rows, 'Google', 'google-summary');
@@ -372,21 +412,82 @@ function renderAll(days, mult) {
   renderCharts(rows);
 }
 
-// KPIs
+// Barra comparativa MTD | + Proy | = Total
+function renderComparison(rows) {
+  const mtdSpend = rows.reduce((s,r) => s + r.mtdSpend, 0);
+  const mtdCotas = rows.reduce((s,r) => s + r.mtdCotas, 0);
+  const mtdSolas = rows.reduce((s,r) => s + r.mtdSolas, 0);
+
+  const pSpend = rows.reduce((s,r) => s + r.pSpend, 0);
+  const pCotas = rows.reduce((s,r) => s + r.pCotas, 0);
+  const pSolas = rows.reduce((s,r) => s + r.pSolas, 0);
+
+  const tSpend = rows.reduce((s,r) => s + r.tSpend, 0);
+  const tCotas = rows.reduce((s,r) => s + r.tCotas, 0);
+  const tSolas = rows.reduce((s,r) => s + r.tSolas, 0);
+
+  const mk = (metrics) => metrics.map(m =>
+    `<div class="comp-metric"><div class="cm-label">${m.label}</div><div class="cm-val ${m.cls||''}">${m.val}</div></div>`
+  ).join('');
+
+  document.getElementById('comp-bar').innerHTML = `
+    <div class="comp-panel real">
+      <div class="comp-header real">
+        <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        MTD Real · ${_fmtDate(DATA_FROM)} – ${_fmtDate(DATA_TO)} · ${DATASET_DAYS} días
+      </div>
+      <div class="comp-metrics">${mk([
+        { label:'Gasto real',  val:fmtARSk(mtdSpend), cls:'mid'    },
+        { label:'Cotas reales', val:fmtInt(mtdCotas),  cls:'blue'   },
+        { label:'Solas reales', val:fmtInt(mtdSolas),  cls:'orange' },
+        { label:'Conv%',        val:fmtPct(mtdCotas>0?mtdSolas/mtdCotas:null) }
+      ])}</div>
+    </div>
+    <div class="comp-op">+</div>
+    <div class="comp-panel proj">
+      <div class="comp-header proj">
+        <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+        Proyección · días futuros seleccionados
+      </div>
+      <div class="comp-metrics">${mk([
+        { label:'Gasto est.',  val:fmtARSk(pSpend), cls:'mid'    },
+        { label:'Cotas est.',  val:fmtInt(pCotas),  cls:'blue'   },
+        { label:'Solas est.',  val:fmtInt(pSolas),  cls:'orange' },
+        { label:'Conv%',       val:fmtPct(pCotas>0?pSolas/pCotas:null) }
+      ])}</div>
+    </div>
+    <div class="comp-op">=</div>
+    <div class="comp-panel total">
+      <div class="comp-header total">
+        <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>
+        Total Estimado · período completo
+      </div>
+      <div class="comp-metrics">${mk([
+        { label:'Gasto total', val:fmtARSk(tSpend), cls:'mid'   },
+        { label:'Cotas total', val:fmtInt(tCotas),  cls:'blue'  },
+        { label:'Solas total', val:fmtInt(tSolas),  cls:'green' },
+        { label:'$/Sola tot.', val:fmtARS(tSolas>0?tSpend/tSolas:null) }
+      ])}</div>
+    </div>`;
+}
+
+// KPIs — muestran Total Estimado (MTD real + proyectado)
 function renderKPIs(rows, days) {
-  const tSpend = rows.reduce((s, r) => s + r.pSpend, 0);
-  const tConv  = rows.reduce((s, r) => s + r.pConv,  0);
-  const tCotas = rows.reduce((s, r) => s + r.pCotas, 0);
-  const tSolas = rows.reduce((s, r) => s + r.pSolas, 0);
-  const convR  = tCotas > 0 ? tSolas / tCotas : null;
-  const cpo    = tSolas > 0 ? tSpend / tSolas : null;
+  const pSpend = rows.reduce((s, r) => s + r.pSpend, 0);
+  const pCotas = rows.reduce((s, r) => s + r.pCotas, 0);
+  const pSolas = rows.reduce((s, r) => s + r.pSolas, 0);
+  const totSpend = rows.reduce((s, r) => s + r.tSpend, 0);
+  const totCotas = rows.reduce((s, r) => s + r.tCotas, 0);
+  const totSolas = rows.reduce((s, r) => s + r.tSolas, 0);
+  const convR  = totCotas > 0 ? totSolas / totCotas : null;
+  const cpo    = totSolas > 0 ? totSpend / totSolas : null;
   document.getElementById('kpi-grid').innerHTML = [
-    { label: 'Gasto proyectado',     value: fmtARSk(tSpend),  cls: 'mid',    sub: `${fmtARSk(tSpend/days)}/día × ${days} días` },
-    { label: 'Conv. plataforma',     value: fmtInt(tConv),    cls: 'blue',   sub: `${fmtInt(tConv/days)}/día proyectado` },
-    { label: 'Cotas proyectadas',    value: fmtInt(tCotas),   cls: 'blue',   sub: `${fmtInt(tCotas/days)}/día proyectado` },
-    { label: 'Solas proyectadas',    value: fmtInt(tSolas),   cls: 'orange', sub: `${fmtInt(tSolas/days)}/día proyectado` },
-    { label: 'Prob. cierre (Conv%)', value: fmtPct(convR),    cls: 'green',  sub: 'Solas / Cotas total proyectado' },
-    { label: '$/Sola proyectado',    value: fmtARS(cpo),      cls: 'mid',    sub: 'Gasto total / Solas proyectadas' }
+    { label: 'Gasto total est.',     value: fmtARSk(totSpend), cls: 'mid',    sub: `MTD ${fmtARSk(totSpend-pSpend)} + proy. ${fmtARSk(pSpend)}` },
+    { label: 'Cotas totales est.',   value: fmtInt(totCotas),  cls: 'blue',   sub: `MTD ${fmtInt(totCotas-pCotas)} + proy. ${fmtInt(pCotas)}` },
+    { label: 'Solas totales est.',   value: fmtInt(totSolas),  cls: 'orange', sub: `MTD ${fmtInt(totSolas-pSolas)} + proy. ${fmtInt(pSolas)}` },
+    { label: 'Cotas proyectadas',    value: fmtInt(pCotas),    cls: 'mid',    sub: `${fmtInt(pCotas/days)}/día × ${days} días futuros` },
+    { label: 'Prob. cierre (Conv%)', value: fmtPct(convR),     cls: 'green',  sub: 'Solas totales / Cotas totales' },
+    { label: '$/Sola total est.',    value: fmtARS(cpo),       cls: 'mid',    sub: 'Gasto total / Solas totales est.' }
   ].map(c => `<div class="kpi-card ${c.cls}"><div class="label">${c.label}</div><div class="value">${c.value}</div><div class="sub">${c.sub}</div></div>`).join('');
 }
 
@@ -397,19 +498,20 @@ function renderTable(rows, days) {
   const head = `<tr>
     <th>#</th>
     <th>Fuente</th>
-    <th style="min-width:200px">Campaña</th>
+    <th style="min-width:180px">Campaña</th>
     <th>Tipo</th>
-    <th class="num">$/día</th>
-    <th class="num proj-col">Gasto proy.</th>
-    <th class="num">Conv/día</th>
-    <th class="num proj-col">Conv. proy.</th>
     <th class="num">Cotas/día</th>
+    <th class="num mtd-col">Cotas MTD</th>
     <th class="num proj-col">Cotas proy.</th>
-    <th class="num">Capture%</th>
+    <th class="num tot-col">Cotas TOTAL</th>
     <th class="num">Solas/día</th>
+    <th class="num mtd-col">Solas MTD</th>
     <th class="num proj-col">Solas proy.</th>
+    <th class="num tot-col">Solas TOTAL</th>
     <th class="num">Prob. Cierre</th>
+    <th class="num">Capture%</th>
     <th class="num proj-col">$/Sola proy.</th>
+    <th class="num tot-col">$/Sola total</th>
   </tr>`;
 
   const body = rows.map((r, i) => {
@@ -419,39 +521,45 @@ function renderTable(rows, days) {
     return `<tr>
       <td class="muted">${i + 1}</td>
       <td><span class="badge-source ${srcCls}">${r.source}</span></td>
-      <td style="font-size:12px;font-weight:600;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.campaign}">${r.campaign}</td>
+      <td style="font-size:12px;font-weight:600;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.campaign}">${r.campaign}</td>
       <td><span class="badge-tipo ${r.tipo.cls}">${r.tipo.label}</span></td>
-      <td class="num muted">${fmtARSk(r.dailySpend)}</td>
-      <td class="num proj-blue">${fmtARSk(r.pSpend)}</td>
-      <td class="num muted">${fmtInt(r.dailyConv)}</td>
-      <td class="num proj-blue">${fmtInt(r.pConv)}</td>
       <td class="num muted">${fmtInt(r.dailyCotas)}</td>
+      <td class="num blue">${fmtInt(r.mtdCotas)}</td>
       <td class="num proj-blue">${fmtInt(r.pCotas)}</td>
-      <td class="num ${capCls}">${fmtPct(r.captureRate)}</td>
+      <td class="num tot-blue">${fmtInt(r.tCotas)}</td>
       <td class="num muted">${fmtInt(r.dailySolas)}</td>
+      <td class="num orange">${fmtInt(r.mtdSolas)}</td>
       <td class="num proj-orange">${fmtInt(r.pSolas)}</td>
+      <td class="num tot-orange">${fmtInt(r.tSolas)}</td>
       <td class="num">${prob ? `<span class="prob-badge ${prob.cls}">${prob.label} · ${fmtPct(r.convRate)}</span>` : '—'}</td>
+      <td class="num ${capCls}">${fmtPct(r.captureRate)}</td>
       <td class="num proj-green">${fmtARS(r.pCpoSola)}</td>
+      <td class="num tot-green">${fmtARS(r.tCpoSola)}</td>
     </tr>`;
   }).join('');
 
-  const tSpend = rows.reduce((s,r)=>s+r.pSpend,0);
-  const tConv  = rows.reduce((s,r)=>s+r.pConv,0);
-  const tCotas = rows.reduce((s,r)=>s+r.pCotas,0);
-  const tSolas = rows.reduce((s,r)=>s+r.pSolas,0);
+  const totPCotas = rows.reduce((s,r)=>s+r.pCotas,0);
+  const totPSolas = rows.reduce((s,r)=>s+r.pSolas,0);
+  const totPSpend = rows.reduce((s,r)=>s+r.pSpend,0);
+  const totMCotas = rows.reduce((s,r)=>s+r.mtdCotas,0);
+  const totMSolas = rows.reduce((s,r)=>s+r.mtdSolas,0);
+  const totTCotas = rows.reduce((s,r)=>s+r.tCotas,0);
+  const totTSolas = rows.reduce((s,r)=>s+r.tSolas,0);
+  const totTSpend = rows.reduce((s,r)=>s+r.tSpend,0);
   const footer = `<tr>
     <td colspan="4" class="total-row">TOTAL (${rows.length} campañas · ${days} días)</td>
-    <td class="num total-row muted">${fmtARSk(rows.reduce((s,r)=>s+r.dailySpend,0))}</td>
-    <td class="num total-row">${fmtARSk(tSpend)}</td>
-    <td class="num total-row muted">${fmtInt(rows.reduce((s,r)=>s+r.dailyConv,0))}</td>
-    <td class="num total-row">${fmtInt(tConv)}</td>
     <td class="num total-row muted">${fmtInt(rows.reduce((s,r)=>s+r.dailyCotas,0))}</td>
-    <td class="num total-row">${fmtInt(tCotas)}</td>
-    <td class="num total-row">—</td>
+    <td class="num total-row blue">${fmtInt(totMCotas)}</td>
+    <td class="num total-row">${fmtInt(totPCotas)}</td>
+    <td class="num total-row" style="color:#059669">${fmtInt(totTCotas)}</td>
     <td class="num total-row muted">${fmtInt(rows.reduce((s,r)=>s+r.dailySolas,0))}</td>
-    <td class="num total-row">${fmtInt(tSolas)}</td>
-    <td class="num total-row">${fmtPct(tCotas>0?tSolas/tCotas:null)}</td>
-    <td class="num total-row">${fmtARS(tSolas>0?tSpend/tSolas:null)}</td>
+    <td class="num total-row orange">${fmtInt(totMSolas)}</td>
+    <td class="num total-row">${fmtInt(totPSolas)}</td>
+    <td class="num total-row" style="color:#059669">${fmtInt(totTSolas)}</td>
+    <td class="num total-row">${fmtPct(totTCotas>0?totTSolas/totTCotas:null)}</td>
+    <td class="num total-row">—</td>
+    <td class="num total-row">${fmtARS(totPSolas>0?totPSpend/totPSolas:null)}</td>
+    <td class="num total-row" style="color:#059669">${fmtARS(totTSolas>0?totTSpend/totTSolas:null)}</td>
   </tr>`;
 
   const t = document.getElementById('proj-table');
