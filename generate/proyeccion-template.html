@@ -102,6 +102,34 @@ footer { text-align: center; padding: 24px; color: #808285; font-size: 12px; }
 
 @media (max-width: 1200px) { .kpi-grid { grid-template-columns: repeat(3,1fr); } .chart-row { grid-template-columns: 1fr; } .plat-grid { grid-template-columns: 1fr; } }
 @media (max-width: 640px)  { .kpi-grid { grid-template-columns: 1fr 1fr; } .controls-bar { flex-direction: column; align-items: flex-start; } .ctrl-note { margin-left: 0; } }
+/* ── Simulador de Inversión ── */
+.sim-tabs{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;}
+.sim-tab{background:#f0f3f8;border:1.5px solid #e5e9f0;color:#6A6A6A;font-size:13px;font-weight:600;padding:9px 18px;border-radius:8px;cursor:pointer;transition:all .15s;font-family:inherit;}
+.sim-tab.active{background:#0033A0;border-color:#0033A0;color:#fff;}
+.sim-tab:hover:not(.active){border-color:#4D7CC7;color:#0033A0;}
+.sim-input-row{display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:20px;background:#f8fafd;border:1px solid #e5e9f0;border-radius:10px;padding:16px 20px;}
+.sim-input-group{display:flex;flex-direction:column;gap:4px;}
+.sim-input-label-text{font-size:11px;color:#808285;font-weight:600;text-transform:uppercase;letter-spacing:0.4px;}
+.sim-input{border:1.5px solid #e5e9f0;border-radius:8px;padding:10px 14px;font-size:15px;font-weight:700;color:#2B2B2B;background:#fff;outline:none;width:260px;transition:border-color .15s;font-family:inherit;}
+.sim-input:focus{border-color:#10b981;box-shadow:0 0 0 3px rgba(16,185,129,.12);}
+.sim-reset-btn{background:#f0f3f8;border:1.5px solid #e5e9f0;color:#4D7CC7;font-size:12px;font-weight:600;padding:10px 16px;border-radius:8px;cursor:pointer;white-space:nowrap;transition:all .15s;font-family:inherit;}
+.sim-reset-btn:hover{background:#e5e9f0;}
+.sim-out-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:20px;}
+.sim-out-card{background:#f8fafd;border:1px solid #e5e9f0;border-radius:10px;padding:18px 20px;}
+.sim-out-card .soc-label{font-size:11px;color:#808285;font-weight:600;text-transform:uppercase;letter-spacing:0.4px;margin-bottom:6px;}
+.sim-out-card .soc-val{font-size:22px;font-weight:700;}
+.sim-out-card .soc-diff{font-size:11px;margin-top:4px;color:#808285;}
+.sim-out-card.invest{border-left:3px solid #4D7CC7;} .sim-out-card.invest .soc-val{color:#4D7CC7;}
+.sim-out-card.cotas-c{border-left:3px solid #0033A0;} .sim-out-card.cotas-c .soc-val{color:#0033A0;}
+.sim-out-card.solas-c{border-left:3px solid #FA6400;} .sim-out-card.solas-c .soc-val{color:#FA6400;}
+.rec-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;white-space:nowrap;}
+.rec-badge.aumentar{background:rgba(16,185,129,.12);color:#059669;}
+.rec-badge.mantener{background:rgba(77,124,199,.12);color:#4D7CC7;}
+.rec-badge.reducir{background:rgba(239,68,68,.12);color:#ef4444;}
+.fixed-badge{font-size:10px;background:#0033A0;color:#fff;padding:2px 6px;border-radius:4px;margin-left:5px;vertical-align:middle;}
+.fixed-badge.orange{background:#FA6400;}
+@media(max-width:900px){.sim-out-grid{grid-template-columns:1fr 1fr;}}
+@media(max-width:640px){.sim-out-grid{grid-template-columns:1fr;}.sim-input{width:100%;}}
 @media print { body { background: #fff !important; } .nav-links, .controls-bar { display: none; } }
 
 /* ── Barra comparativa MTD Real | + Proyección | = Total Estimado ── */
@@ -218,6 +246,11 @@ td.tot-green  { color: #10b981; font-weight: 700; }
     </div>
     <div class="ctrl-sep">→</div>
     <div class="ctrl-group">
+      <div class="ctrl-label">Proyectar desde</div>
+      <input type="date" id="start-date-input" class="date-picker">
+    </div>
+    <div class="ctrl-sep" style="font-size:16px;color:#9ca3af">—</div>
+    <div class="ctrl-group">
       <div class="ctrl-label">Proyectar hasta</div>
       <input type="date" id="end-date-input" class="date-picker">
     </div>
@@ -257,6 +290,35 @@ td.tot-green  { color: #10b981; font-weight: 700; }
       * La barra superior y los KPIs usan <strong>d.cotas.total / d.solas.total</strong> (fuente de verdad CRM = todas las fuentes). La tabla muestra el detalle por campaña de paid media (Google + Meta); su suma es menor porque excluye cotas orgánicas, Own Media y atribución a nivel plataforma.
       <br>* <strong>Capture%</strong> = Cotas CRM / Conversiones plataforma (indica calidad de atribución).
       <br>* <strong>Prob. Cierre</strong> = Conv% (Solas/Cotas) usado como probabilidad de emisión de póliza.
+    </div>
+  </div>
+
+  <!-- Simulador de Inversión -->
+  <div class="section" id="sim-section">
+    <h2>
+      <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 11h.01M12 11h.01M15 11h.01M4 19h16a2 2 0 002-2V7a2 2 0 00-2-2H4a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+      Simulador de Inversión
+      <span class="badge">basado en eficiencia por campaña</span>
+    </h2>
+    <div class="sim-tabs">
+      <button class="sim-tab active" data-mode="invest">Fijar Inversión</button>
+      <button class="sim-tab" data-mode="cotas">Fijar Cotas objetivo</button>
+      <button class="sim-tab" data-mode="solas">Fijar Solas objetivo</button>
+    </div>
+    <div class="sim-input-row" id="sim-input-row">
+      <div class="sim-input-group">
+        <span class="sim-input-label-text" id="sim-input-label">Inversión total ($ARS)</span>
+        <input type="text" class="sim-input" id="sim-input" placeholder="Ej: 150.000.000">
+      </div>
+      <button class="sim-reset-btn" id="sim-reset-btn">↺ Usar datos reales</button>
+    </div>
+    <div class="sim-out-grid" id="sim-out-grid"></div>
+    <div style="overflow-x:auto">
+      <table id="sim-table"><thead></thead><tbody></tbody></table>
+    </div>
+    <div style="font-size:11px;color:#808285;margin-top:10px;line-height:1.5">
+      * Redistribución proporcional a la eficiencia (solas/gasto) de cada campaña en el período actual.
+      <br>* Tasa blended: gasto paid media MTD ÷ solas totales CRM (incluye orgánico y todas las fuentes).
     </div>
   </div>
 
@@ -627,6 +689,179 @@ function renderCharts(rows) {
   chartSolas = makeChart('chart-solas', rows.map(r => Math.round(r.pSolas)), 'Solas');
 }
 
+// ─── Simulador de Inversión ───────────────────────────────────────────────────
+let simMode  = 'invest';
+let simFixed = null;
+let _currentDays = 1;
+let _currentMult = 1.0;
+
+const SIM_CFG = {
+  invest: { label: 'Inversión total ($ARS)', placeholder: 'Ej: 150.000.000' },
+  cotas:  { label: 'Cotas objetivo',          placeholder: 'Ej: 5.000'       },
+  solas:  { label: 'Solas objetivo',          placeholder: 'Ej: 600'         }
+};
+
+function getSimRows() {
+  if (BASE_ROWS.length) return BASE_ROWS;
+  // Fallback con datos representativos reales (escala correcta ~$112M, ~7.600 cotas, ~759 solas)
+  const DEMO = [
+    { source:'Google', campaign:'Search - BA - Auto - AR - Simplificada', mtdSpend:45000000, mtdCotas:1800, mtdSolas:180 },
+    { source:'Google', campaign:'Search - INT - Seguros - Auto - AR',      mtdSpend:18000000, mtdCotas:900,  mtdSolas:85  },
+    { source:'Google', campaign:'MaxPerformance - Auto - AR',              mtdSpend:18000000, mtdCotas:1200, mtdSolas:110 },
+    { source:'Google', campaign:'Retention - Auto - AR',                   mtdSpend:5000000,  mtdCotas:500,  mtdSolas:45  },
+    { source:'Google', campaign:'Search - BA - Auto - AR - Test',          mtdSpend:5300000,  mtdCotas:180,  mtdSolas:15  },
+    { source:'Google', campaign:'DemandGen - Auto - AR',                   mtdSpend:3500000,  mtdCotas:220,  mtdSolas:20  },
+    { source:'Meta',   campaign:'Conversiones AO - Auto - AR',             mtdSpend:8000000,  mtdCotas:700,  mtdSolas:62  },
+    { source:'Meta',   campaign:'A/B Test - Auto - AR',                    mtdSpend:4500000,  mtdCotas:320,  mtdSolas:28  },
+    { source:'Meta',   campaign:'Checkout - Auto - AR',                    mtdSpend:4200000,  mtdCotas:300,  mtdSolas:25  }
+  ];
+  return DEMO.map(r => ({
+    ...r, tipo: campaignType(r.campaign),
+    dailySpend: r.mtdSpend / DATASET_DAYS, dailyCotas: r.mtdCotas / DATASET_DAYS,
+    dailySolas: r.mtdSolas / DATASET_DAYS, dailyConv: 0, captureRate: null,
+    convRate: r.mtdCotas > 0 ? r.mtdSolas / r.mtdCotas : null, mtdConv: 0
+  }));
+}
+
+function simRedistribute(targetInvest, rows) {
+  const totalEff = rows.reduce((s, r) => s + Math.max(r.dailySolas / Math.max(r.dailySpend, 1), 1e-9), 0);
+  return rows.map(r => {
+    const eff  = Math.max(r.dailySolas / Math.max(r.dailySpend, 1), 1e-9);
+    const share = totalEff > 0 ? eff / totalEff : 1 / rows.length;
+    const simSpend = targetInvest * share;
+    const scale    = r.mtdSpend > 0 ? simSpend / r.mtdSpend : 0;
+    const simCotas = r.mtdCotas * scale;
+    const simSolas = r.mtdSolas * scale;
+    return { ...r, simSpend, simCotas, simSolas, simCpoSola: simSolas > 0 ? simSpend / simSolas : null };
+  });
+}
+
+function renderSimulator() {
+  const rows      = getSimRows();
+  const baseMtdSpend = rows.reduce((s, r) => s + r.mtdSpend, 0);
+  const baseSpend = TOTAL_MTD_SPEND || baseMtdSpend;
+  const baseCotas = TOTAL_MTD_COTAS;
+  const baseSolas = TOTAL_MTD_SOLAS;
+
+  const cfg = SIM_CFG[simMode];
+  document.getElementById('sim-input-label').textContent = cfg.label;
+  document.getElementById('sim-input').placeholder = cfg.placeholder;
+
+  // Calcular invest / cotas / solas según modo y valor fijado
+  let invest = baseSpend, cotas = baseCotas, solas = baseSolas;
+  if (simFixed != null && simFixed > 0) {
+    const blCota = baseSpend > 0 ? baseCotas / baseSpend : 0;
+    const blSola = baseSpend > 0 ? baseSolas / baseSpend : 0;
+    if (simMode === 'invest') {
+      invest = simFixed;
+      cotas  = invest * blCota;
+      solas  = invest * blSola;
+    } else if (simMode === 'cotas') {
+      cotas  = simFixed;
+      invest = blCota > 0 ? cotas / blCota : 0;
+      solas  = invest * blSola;
+    } else {
+      solas  = simFixed;
+      invest = blSola > 0 ? solas / blSola : 0;
+      cotas  = invest * blCota;
+    }
+  }
+
+  const diffI = simFixed != null ? invest - baseSpend : 0;
+  const diffC = simFixed != null ? cotas  - baseCotas : 0;
+  const diffS = simFixed != null ? solas  - baseSolas : 0;
+  const fmtDiff = (v, fn) => v === 0 ? 'Sin cambio' : (v > 0 ? `▲ +${fn(v)}` : `▼ ${fn(-v)}`);
+
+  document.getElementById('sim-out-grid').innerHTML = `
+    <div class="sim-out-card invest">
+      <div class="soc-label">Inversión${simMode==='invest'&&simFixed?' <span class="fixed-badge">FIJO</span>':''}</div>
+      <div class="soc-val">${fmtARSk(invest)}</div>
+      <div class="soc-diff">${simFixed!=null ? fmtDiff(diffI, fmtARSk) : fmtARSk(baseSpend)+' · período actual'}</div>
+    </div>
+    <div class="sim-out-card cotas-c">
+      <div class="soc-label">Cotas${simMode==='cotas'&&simFixed?' <span class="fixed-badge">FIJO</span>':''}</div>
+      <div class="soc-val">${fmtInt(cotas)}</div>
+      <div class="soc-diff">${simFixed!=null ? fmtDiff(diffC, fmtInt) : fmtInt(baseCotas)+' · período actual'}</div>
+    </div>
+    <div class="sim-out-card solas-c">
+      <div class="soc-label">Solas${simMode==='solas'&&simFixed?' <span class="fixed-badge orange">FIJO</span>':''}</div>
+      <div class="soc-val">${fmtInt(solas)}</div>
+      <div class="soc-diff">${simFixed!=null ? fmtDiff(diffS, fmtInt) : fmtInt(baseSolas)+' · período actual'}</div>
+    </div>`;
+
+  const simRows = simRedistribute(invest, rows);
+  const thead = `<tr>
+    <th>#</th><th>Fuente</th><th style="min-width:180px">Campaña</th><th>Tipo</th>
+    <th class="num">Gasto MTD</th><th class="num proj-col">Gasto sim.</th>
+    <th class="num">Cotas MTD</th><th class="num proj-col">Cotas sim.</th>
+    <th class="num">Solas MTD</th><th class="num proj-col">Solas sim.</th>
+    <th class="num">$/Sola MTD</th><th class="num proj-col">$/Sola sim.</th>
+    <th class="num">Recomendación</th>
+  </tr>`;
+  const tbody = simRows.map((r, i) => {
+    const srcCls = r.source === 'Google' ? 'google' : 'meta';
+    const pct = r.mtdSpend > 0 ? (r.simSpend - r.mtdSpend) / r.mtdSpend : 0;
+    const recCls = pct > 0.05 ? 'aumentar' : pct < -0.05 ? 'reducir' : 'mantener';
+    const recTxt = pct > 0.05 ? `▲ +${(pct*100).toFixed(0)}%` : pct < -0.05 ? `▼ ${(-pct*100).toFixed(0)}%` : '≈ Mantener';
+    const cpoMtd = r.mtdSolas > 0 ? r.mtdSpend / r.mtdSolas : null;
+    return `<tr>
+      <td class="muted">${i+1}</td>
+      <td><span class="badge-source ${srcCls}">${r.source}</span></td>
+      <td style="font-size:12px;font-weight:600;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.campaign}">${r.campaign}</td>
+      <td><span class="badge-tipo ${r.tipo.cls}">${r.tipo.label}</span></td>
+      <td class="num blue">${fmtARSk(r.mtdSpend)}</td>
+      <td class="num proj-blue">${fmtARSk(r.simSpend)}</td>
+      <td class="num blue">${fmtInt(r.mtdCotas)}</td>
+      <td class="num proj-blue">${fmtInt(r.simCotas)}</td>
+      <td class="num orange">${fmtInt(r.mtdSolas)}</td>
+      <td class="num proj-orange">${fmtInt(r.simSolas)}</td>
+      <td class="num">${fmtARS(cpoMtd)}</td>
+      <td class="num proj-green">${fmtARS(r.simCpoSola)}</td>
+      <td class="num"><span class="rec-badge ${recCls}">${recTxt}</span></td>
+    </tr>`;
+  }).join('');
+  const ts = r => r.reduce((s,x)=>s+x,0);
+  const tfoot = `<tr>
+    <td colspan="4" class="total-row">TOTAL</td>
+    <td class="num total-row blue">${fmtARSk(rows.reduce((s,r)=>s+r.mtdSpend,0))}</td>
+    <td class="num total-row">${fmtARSk(simRows.reduce((s,r)=>s+r.simSpend,0))}</td>
+    <td class="num total-row blue">${fmtInt(rows.reduce((s,r)=>s+r.mtdCotas,0))}</td>
+    <td class="num total-row">${fmtInt(simRows.reduce((s,r)=>s+r.simCotas,0))}</td>
+    <td class="num total-row orange">${fmtInt(rows.reduce((s,r)=>s+r.mtdSolas,0))}</td>
+    <td class="num total-row">${fmtInt(simRows.reduce((s,r)=>s+r.simSolas,0))}</td>
+    <td class="num total-row">${fmtARS(rows.reduce((s,r)=>s+r.mtdSolas,0)>0?rows.reduce((s,r)=>s+r.mtdSpend,0)/rows.reduce((s,r)=>s+r.mtdSolas,0):null)}</td>
+    <td class="num total-row">${fmtARS(simRows.reduce((s,r)=>s+r.simSolas,0)>0?simRows.reduce((s,r)=>s+r.simSpend,0)/simRows.reduce((s,r)=>s+r.simSolas,0):null)}</td>
+    <td class="num total-row">—</td>
+  </tr>`;
+  const t = document.getElementById('sim-table');
+  t.querySelector('thead').innerHTML = thead;
+  t.querySelector('tbody').innerHTML = tbody + tfoot;
+
+  document.querySelectorAll('.sim-tab').forEach(btn =>
+    btn.classList.toggle('active', btn.dataset.mode === simMode));
+}
+
+document.querySelectorAll('.sim-tab').forEach(btn => btn.addEventListener('click', () => {
+  simMode = btn.dataset.mode; simFixed = null;
+  const el = document.getElementById('sim-input'); el.value = ''; el._userEdited = false;
+  renderSimulator();
+}));
+
+document.getElementById('sim-input').addEventListener('input', () => {
+  const el  = document.getElementById('sim-input');
+  const raw = el.value.replace(/\./g, '').replace(',', '.').replace(/[^\d.]/g, '');
+  const val = parseFloat(raw);
+  if (!isNaN(val) && val > 0) { el._userEdited = true; simFixed = val; }
+  else { simFixed = null; el._userEdited = false; }
+  renderSimulator();
+});
+
+document.getElementById('sim-reset-btn').addEventListener('click', () => {
+  simFixed = null;
+  const el = document.getElementById('sim-input'); el.value = ''; el._userEdited = false;
+  renderSimulator();
+});
+
 // ─── Inicialización ───────────────────────────────────────────────────────────
 document.getElementById('generated-at').textContent =
   d.generated_at ? new Date(d.generated_at).toLocaleString('es-AR') : new Date().toLocaleString('es-AR');
@@ -639,39 +874,59 @@ const periodLabel = DATA_FROM === DATA_TO
 document.getElementById('data-date-display').textContent = periodLabel;
 document.getElementById('data-date-val').textContent     = periodLabel;
 
-// Fin de mes por defecto
-const _today   = new Date();
-const _lastDay = new Date(_today.getFullYear(), _today.getMonth() + 1, 0).toISOString().slice(0,10);
+// Configuración de fechas
+const _today      = new Date();
+const _lastDay    = new Date(_today.getFullYear(), _today.getMonth() + 1, 0).toISOString().slice(0,10);
 
+// Inicio de proyección = día siguiente al cierre del período de datos
+const _projStart  = new Date(DATA_TO);
+_projStart.setDate(_projStart.getDate() + 1);
+const _projStartISO = _projStart.toISOString().slice(0,10);
+
+const startInput = document.getElementById('start-date-input');
 const endInput   = document.getElementById('end-date-input');
 const scenSelect = document.getElementById('scenario-select');
 const daysPill   = document.getElementById('days-pill');
 const scenPill   = document.getElementById('scenario-pill');
 
+// Start: puede ir hasta DATA_FROM para ver el mes completo
+startInput.min   = DATA_FROM;
+startInput.max   = _lastDay;
+startInput.value = _projStartISO;
+
+endInput.min   = _projStartISO;
 endInput.value = _lastDay;
-endInput.min   = DATA_TO; // mínimo: desde el último día del período
 
 const SCEN_LABELS = { '1.2': 'Optimista', '1.0': 'Base', '0.8': 'Conservador' };
 const SCEN_COLORS = { '1.2': '#10b981',   '1.0': '#4D7CC7', '0.8': '#d97706' };
 
+// calcDays: proyección siempre desde DATA_TO+1 al fin elegido
 const calcDays = () => {
-  // Proyectar desde el día siguiente al cierre del período hasta la fecha elegida
-  const start = new Date(DATA_TO);
-  start.setDate(start.getDate() + 1);
   const end = new Date(endInput.value);
-  if (isNaN(end.getTime()) || end < start) return 1;
-  return Math.max(1, Math.round((end - start) / 86400000) + 1);
+  if (isNaN(end.getTime()) || end < _projStart) return 1;
+  return Math.max(1, Math.round((end - _projStart) / 86400000) + 1);
 };
 
 const update = () => {
-  const days = calcDays();
-  const mult = parseFloat(scenSelect.value) || 1;
-  daysPill.textContent      = `${days} días a proyectar`;
+  _currentDays = calcDays();
+  _currentMult = parseFloat(scenSelect.value) || 1;
+  // Pill: distinguir si el usuario eligió un inicio histórico
+  const startD = new Date(startInput.value);
+  let pillText;
+  if (!isNaN(startD.getTime()) && startD < _projStart) {
+    const realDays = Math.round((_projStart - startD) / 86400000);
+    pillText = `${realDays + _currentDays} días · ${realDays} reales + ${_currentDays} proy.`;
+  } else {
+    pillText = `${_currentDays} días a proyectar`;
+  }
+  daysPill.textContent      = pillText;
   scenPill.textContent      = SCEN_LABELS[scenSelect.value] || 'Base';
   scenPill.style.background = SCEN_COLORS[scenSelect.value] || '#4D7CC7';
-  renderAll(days, mult);
+  renderAll(_currentDays, _currentMult);
+  renderSimulator();
 };
 
+startInput.addEventListener('change', update);
 endInput.addEventListener('change', update);
 scenSelect.addEventListener('change', update);
 update();
