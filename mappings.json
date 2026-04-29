@@ -1,23 +1,21 @@
 {
-  "_comment": "Mapeo campaña publicitaria → nombre de Plataforma en el Google Sheet. Usado por process/merge-data.js para cruzar Gasto con Cotas/Solas.",
+  "_comment": "Las plataformas en el Sheet usan los MISMOS nombres exactos que las campañas en Google Ads y Meta Ads. El cruce es identidad. Plataformas no-paid (Orgánico, Own Media, DV) no tienen campaña paid asociada.",
   "google_ads_to_sheet": {
-    "Search BA (simplificada)": "Search BA simp",
-    "Search INT": "Search INT",
-    "MaxPerformance": "MaxPerformance",
-    "Search BA (test a/b)": "Search BA test",
-    "Search Retention": "Search Retention",
-    "DemandGen Similares": "Google",
-    "DemandGen Remarketing": "Google",
-    "Search Movilidad": "Movilidad"
+    "Search - Auto - Segment - BA (simplificada)": "Search - Auto - Segment - BA (simplificada)",
+    "MaxPerformance - Auto - Segment": "MaxPerformance - Auto - Segment",
+    "Search - Auto - Segment - INT": "Search - Auto - Segment - INT",
+    "Search - Auto - Segment - BA (test a/b)": "Search - Auto - Segment - BA (test a/b)",
+    "Search - Auto - Retention": "Search - Auto - Retention",
+    "DemandGen - Auto - Similares": "DemandGen - Auto - Similares"
   },
   "meta_ads_to_sheet": {
-    "Conv Auto AO": "Conv AO",
-    "Conv Auto AO (A/B test)": "Meta",
-    "Conv Auto AO (checkout)": "Meta"
+    "Conversiones - Auto - AO": "Conversiones - Auto - AO",
+    "Conversiones - Auto - AO - (A/B test)": "Conversiones - Auto - AO - (A/B test)",
+    "Conversiones - Auto - AO (checkout)": "Conversiones - Auto - AO (checkout)"
   },
   "business_rules": {
-    "never_scale_budget": ["Search INT"],
-    "low_attribution_warning": ["Conv Auto AO", "Conv Auto AO (A/B test)", "Conv Auto AO (checkout)"],
-    "no_paid_cost": ["Orgánico", "Own Media", "Google (sin atrib)"]
+    "never_scale_budget": ["Search - Auto - Segment - INT"],
+    "low_attribution_warning": ["Conversiones - Auto - AO", "Conversiones - Auto - AO - (A/B test)", "Conversiones - Auto - AO (checkout)"],
+    "no_paid_cost": ["Orgánico", "Own Media", "DV", "Google (sin atrib)"]
   }
 }

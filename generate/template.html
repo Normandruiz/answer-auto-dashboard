@@ -56,6 +56,10 @@ th { background: #f0f3f8; color: #6A6A6A; font-weight: 700; padding: 10px 12px; 
 th.num, td.num { text-align: right; font-variant-numeric: tabular-nums; }
 td { padding: 10px 12px; border-bottom: 1px solid #f0f3f8; color: #2B2B2B; }
 tr:hover td { background: #fafbfd; }
+tr.total-row td { background: #f0f3f8 !important; font-weight: 700; border-top: 2px solid #e5e9f0; color: #2B2B2B; }
+tr.total-row td.google { color: #0033A0; }
+tr.total-row td.meta { color: #FA6400; }
+tr.total-row td.sheet { color: #4D7CC7; }
 td.google { color: #0033A0; font-weight: 600; }
 td.meta { color: #FA6400; font-weight: 600; }
 td.sheet { color: #4D7CC7; font-weight: 600; }
@@ -280,9 +284,10 @@ const COLOR = {
 // Paleta para doughnut/bar multi-categoría: azules y naranjas institucionales alternados, con grises al final
 const PALETTE = [COLOR.blue, COLOR.orange, COLOR.blueLight, COLOR.orangeLight, COLOR.blueSoft, COLOR.orangeSoft, '#A84308', '#002870', COLOR.peach, COLOR.gray, '#A0A0A0', '#CCCCCC'];
 
-const MAPPING_G = {"Search BA (simplificada)":"Search BA simp","Search INT":"Search INT","MaxPerformance":"MaxPerformance","Search BA (test a/b)":"Search BA test","Search Retention":"Search Retention","DemandGen Similares":"Google","DemandGen Remarketing":"Google","Search Movilidad":"Movilidad"};
-const MAPPING_M = {"Conv Auto AO":"Conv AO","Conv Auto AO (A/B test)":"Meta","Conv Auto AO (checkout)":"Meta"};
-const NEVER_SCALE = new Set(["Search INT"]);
+// Cruce identidad: los nombres de campaña en Google Ads y Meta coinciden con la columna Plataforma del Sheet.
+const MAPPING_G = {"Search - Auto - Segment - BA (simplificada)":"Search - Auto - Segment - BA (simplificada)","MaxPerformance - Auto - Segment":"MaxPerformance - Auto - Segment","Search - Auto - Segment - INT":"Search - Auto - Segment - INT","Search - Auto - Segment - BA (test a/b)":"Search - Auto - Segment - BA (test a/b)","Search - Auto - Retention":"Search - Auto - Retention","DemandGen - Auto - Similares":"DemandGen - Auto - Similares"};
+const MAPPING_M = {"Conversiones - Auto - AO":"Conversiones - Auto - AO","Conversiones - Auto - AO - (A/B test)":"Conversiones - Auto - AO - (A/B test)","Conversiones - Auto - AO (checkout)":"Conversiones - Auto - AO (checkout)"};
+const NEVER_SCALE = new Set(["Search - Auto - Segment - INT"]);
 const MONTH_NAMES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
 
 let charts = {};
@@ -376,9 +381,30 @@ function renderCrossTable(d) {
       <td class="num ${r.capture != null && r.capture < 0.3 ? 'warning' : (r.capture != null && r.capture > 0.9 ? 'good' : '')}">${fmtPct(r.capture)}</td>
     </tr>`;
   }).join('');
+  const tSpend = rows.reduce((s,r)=>s+(r.spend||0),0);
+  const tConv  = rows.reduce((s,r)=>s+(r.conv||0),0);
+  const tCotas = rows.reduce((s,r)=>s+(r.cotas||0),0);
+  const tSolas = rows.reduce((s,r)=>s+(r.solas||0),0);
+  const tDiscrep = tConv ? (tConv - tCotas) / tConv : null;
+  const tCpCota  = tCotas ? tSpend / tCotas : null;
+  const tCpSola  = tSolas ? tSpend / tSolas : null;
+  const tConvPct = tCotas ? tSolas / tCotas : null;
+  const tCapture = tConv  ? tCotas / tConv  : null;
+  const totalRow = `<tr class="total-row">
+    <td colspan="2">TOTAL (${rows.length} campañas)</td>
+    <td class="num">${fmtARS(tSpend)}</td>
+    <td class="num">${fmtInt(tConv)}</td>
+    <td class="num sheet">${fmtInt(tCotas)}</td>
+    <td class="num">${fmtPct(tDiscrep)}</td>
+    <td class="num sheet">${fmtInt(tSolas)}</td>
+    <td class="num">${fmtARS(tCpCota)}</td>
+    <td class="num">${fmtARS(tCpSola)}</td>
+    <td class="num">${fmtPct(tConvPct)}</td>
+    <td class="num">${fmtPct(tCapture)}</td>
+  </tr>`;
   const t = document.getElementById('cross-table');
   t.querySelector('thead').innerHTML = head;
-  t.querySelector('tbody').innerHTML = body;
+  t.querySelector('tbody').innerHTML = body + totalRow;
 }
 
 function renderGoogleTable(d) {
@@ -401,9 +427,28 @@ function renderGoogleTable(d) {
       <td class="num google">${c.ayer_conversions != null ? fmtInt(c.ayer_conversions) : '—'}</td>
       <td class="num">${c.ayer_cpa ? fmtARS(c.ayer_cpa) : '—'}</td>
     </tr>`).join('');
+  const tSp = d.google_ads.reduce((s,c)=>s+(c.spend||0),0);
+  const tCv = d.google_ads.reduce((s,c)=>s+(c.conversions||0),0);
+  const tIm = d.google_ads.reduce((s,c)=>s+(c.impressions||0),0);
+  const tCl = d.google_ads.reduce((s,c)=>s+(c.clicks||0),0);
+  const tAs = d.google_ads.reduce((s,c)=>s+(c.ayer_spend||0),0);
+  const tAc = d.google_ads.reduce((s,c)=>s+(c.ayer_conversions||0),0);
+  const cpaMtd = tCv ? tSp / tCv : null;
+  const cpaAyer = tAc ? tAs / tAc : null;
+  const totalRow = `<tr class="total-row">
+    <td colspan="2">TOTAL (${d.google_ads.length} campañas)</td>
+    <td class="num">${fmtARS(tSp)}</td>
+    <td class="num google">${fmtInt(tCv)}</td>
+    <td class="num">${fmtARS(cpaMtd)}</td>
+    <td class="num">${fmtInt(tIm)}</td>
+    <td class="num">${fmtInt(tCl)}</td>
+    <td class="num">${fmtARS(tAs)}</td>
+    <td class="num google">${fmtInt(tAc)}</td>
+    <td class="num">${fmtARS(cpaAyer)}</td>
+  </tr>`;
   const t = document.getElementById('google-table');
   t.querySelector('thead').innerHTML = head;
-  t.querySelector('tbody').innerHTML = body;
+  t.querySelector('tbody').innerHTML = body + totalRow;
 }
 
 function renderMetaTable(d) {
@@ -413,12 +458,16 @@ function renderMetaTable(d) {
     <th class="num">Cotas (Sheet)</th><th class="num">Solas (Sheet)</th><th class="num">$/Cota</th><th class="num">$/Sola</th>
     <th class="num">Gasto Ayer</th><th class="num">Resultados Ayer</th><th class="num">CPA Ayer</th>
   </tr>`;
+  let aggSpend = 0, aggRes = 0, aggCotas = 0, aggSolas = 0, aggAyerSp = 0, aggAyerRes = 0;
   const body = d.meta_ads.map(c => {
     const plat = MAPPING_M[c.campaign] || c.campaign;
     const cotas = d.cotas.by_platform[plat] || 0;
     const solas = d.solas.by_platform[plat] || 0;
     const cpCota = cotas ? c.spend / cotas : null;
     const cpSola = solas ? c.spend / solas : null;
+    aggSpend += (c.spend||0); aggRes += (c.results||0);
+    aggCotas += cotas; aggSolas += solas;
+    aggAyerSp += (c.ayer_spend||0); aggAyerRes += (c.ayer_results||0);
     return `
     <tr>
       <td>${c.campaign}</td>
@@ -435,18 +484,37 @@ function renderMetaTable(d) {
       <td class="num">${c.ayer_cpa ? fmtARS(c.ayer_cpa) : '—'}</td>
     </tr>`;
   }).join('');
+  const cpaMtd = aggRes ? aggSpend / aggRes : null;
+  const cpaAyer = aggAyerRes ? aggAyerSp / aggAyerRes : null;
+  const cpCotaT = aggCotas ? aggSpend / aggCotas : null;
+  const cpSolaT = aggSolas ? aggSpend / aggSolas : null;
+  const totalRow = `<tr class="total-row">
+    <td colspan="2">TOTAL (${d.meta_ads.length} campañas)</td>
+    <td class="num">${fmtARS(aggSpend)}</td>
+    <td class="num meta">${fmtInt(aggRes)}</td>
+    <td class="num">${fmtARS(cpaMtd)}</td>
+    <td class="num sheet">${fmtInt(aggCotas)}</td>
+    <td class="num sheet">${fmtInt(aggSolas)}</td>
+    <td class="num">${fmtARS(cpCotaT)}</td>
+    <td class="num">${fmtARS(cpSolaT)}</td>
+    <td class="num">${fmtARS(aggAyerSp)}</td>
+    <td class="num meta">${fmtInt(aggAyerRes)}</td>
+    <td class="num">${fmtARS(cpaAyer)}</td>
+  </tr>`;
   const t = document.getElementById('meta-table');
   t.querySelector('thead').innerHTML = head;
-  t.querySelector('tbody').innerHTML = body;
+  t.querySelector('tbody').innerHTML = body + totalRow;
 }
 
 function renderComparison(d) {
   const gSpend = d.google_ads.reduce((s,c)=>s+c.spend,0);
   const mSpend = d.meta_ads.reduce((s,c)=>s+c.spend,0);
-  const gCotas = Object.entries(d.cotas.by_platform).filter(([p])=>!['Conv AO','Meta','Orgánico','Own Media'].includes(p)).reduce((s,[,v])=>s+v,0);
-  const mCotas = (d.cotas.by_platform['Conv AO'] || 0) + (d.cotas.by_platform['Meta'] || 0);
-  const gSolas = Object.entries(d.solas.by_platform).filter(([p])=>!['Conv AO','Meta','Orgánico','Own Media'].includes(p)).reduce((s,[,v])=>s+v,0);
-  const mSolas = (d.solas.by_platform['Conv AO'] || 0) + (d.solas.by_platform['Meta'] || 0);
+  const META_PLATS = new Set(['Conversiones - Auto - AO', 'Conversiones - Auto - AO - (A/B test)', 'Conversiones - Auto - AO (checkout)', 'Meta']);
+  const NO_PAID_PLATS = new Set(['Orgánico', 'Own Media', 'DV', 'Google (sin atrib)']);
+  const gCotas = Object.entries(d.cotas.by_platform).filter(([p])=>!META_PLATS.has(p) && !NO_PAID_PLATS.has(p)).reduce((s,[,v])=>s+v,0);
+  const mCotas = Object.entries(d.cotas.by_platform).filter(([p])=>META_PLATS.has(p)).reduce((s,[,v])=>s+v,0);
+  const gSolas = Object.entries(d.solas.by_platform).filter(([p])=>!META_PLATS.has(p) && !NO_PAID_PLATS.has(p)).reduce((s,[,v])=>s+v,0);
+  const mSolas = Object.entries(d.solas.by_platform).filter(([p])=>META_PLATS.has(p)).reduce((s,[,v])=>s+v,0);
   const card = (title, cls, rows) => `
     <div class="insight-card ${cls}" style="border-left-width:4px">
       <div class="tag">${title}</div>
@@ -485,9 +553,14 @@ function renderRanking(d) {
       <td class="num sheet">${fmtInt(r.solas)}</td>
       <td class="num">${fmtPct(r.solas/total)}</td>
     </tr>`).join('');
+  const totalRow = `<tr class="total-row">
+    <td colspan="3">TOTAL Top ${rows.length}</td>
+    <td class="num sheet">${fmtInt(total)}</td>
+    <td class="num">${fmtPct(1)}</td>
+  </tr>`;
   const t = document.getElementById('ranking-table');
   t.querySelector('thead').innerHTML = head;
-  t.querySelector('tbody').innerHTML = body;
+  t.querySelector('tbody').innerHTML = body + totalRow;
 }
 
 function renderRecs(d) {

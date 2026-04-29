@@ -825,9 +825,21 @@ function renderWeekly(d, customRanges) {
       ${campCells}
     </tr>`;
   }).join('');
+  // Fila TOTAL
+  const tCotas = weekData.reduce((s,w)=>s+(w.cotas||0),0);
+  const tSolas = weekData.reduce((s,w)=>s+(w.solas||0),0);
+  const tConv  = tCotas ? tSolas / tCotas : null;
+  const totalCampCells = topCamp.slice(0,5).map(([cod,info])=>`<td class="num" style="font-size:12px">${Math.round(tCotas*info.cotas/totalCotasPeriod)}</td>`).join('');
+  const totalRow = `<tr style="background:#f0f3f8; font-weight:700; border-top:2px solid #e5e9f0">
+    <td style="font-weight:700; white-space:nowrap">TOTAL (${weekData.length} sem.)</td>
+    <td class="num blue">${fmtInt(tCotas)}</td><td class="num">—</td>
+    <td class="num orange">${fmtInt(tSolas)}</td><td class="num">—</td>
+    <td class="num">${fmtPct(tConv)}</td><td class="num">—</td>
+    ${totalCampCells}
+  </tr>`;
   const t = document.getElementById('weekly-table');
   t.querySelector('thead').innerHTML = head;
-  t.querySelector('tbody').innerHTML = body;
+  t.querySelector('tbody').innerHTML = body + totalRow;
 }
 
 // ─── Recomendaciones ──────────────────────────────────────────────────────────
